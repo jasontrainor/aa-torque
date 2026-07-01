@@ -1,2 +1,2 @@
 include ':app', ':speedviewlib'
-project(':speedviewlib').projectDir = new File(rootDir, 'lib/speedviewlib/speedviewlib')
+project(':speedviewlib').projectDir = new File(rootDir, 'lib/speedviewlib')
