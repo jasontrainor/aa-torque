@@ -402,6 +402,16 @@
         <item name="sv_tickRotation">false</item>
     </style>
 
+    <style name="AppTheme.Custom" parent="AppTheme">
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="themedNeedleColor">@android:color/holo_red_dark</item>
+        <item name="themedDialBackground">@drawable/dial_background_test</item>
+        <item name="themedEmptyDialBackground">@drawable/dial_background_test</item>
+        <item name="themedBlankDialBackground">@drawable/dial_background_test</item>
+        <item name="themedNeedle">@drawable/needle_test</item>
+        <item name="themedStopWatchBackground">@drawable/dial_background_test</item>
+    </style>
+
     <style name="AppTheme.Minimalistic" parent="AppTheme">
         <item name="themedCarBackground">@drawable/background_incar_black</item>
         <item name="themedDialBackground">@drawable/dial_background_marks_minimal</item>

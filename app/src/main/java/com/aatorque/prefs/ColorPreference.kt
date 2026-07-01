@@ -28,7 +28,9 @@ class ColorPreference(context: Context, attributeSet: AttributeSet) : Preference
         AlertDialog.Builder(context).setView(
             view
         ).setPositiveButton(android.R.string.ok) { dialog, _ ->
-            colorValue = view.color
+            if (callChangeListener(view.color)) {
+                colorValue = view.color
+            }
             dialog.dismiss()
         }.setNegativeButton(android.R.string.cancel) { dialog, _ ->
             dialog.dismiss()

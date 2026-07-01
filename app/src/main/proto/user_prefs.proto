@@ -71,4 +71,8 @@ message UserPreference {
   uint32 darkenArt = 27;
   bool showSongInfo = 28;
   bool fSportLayout = 29;
+  int32 customBackgroundColor = 30;
+  int32 customAccentColor = 31;
+  int32 customNeedleColor = 32;
+  int32 customRedlineColor = 33;
 }

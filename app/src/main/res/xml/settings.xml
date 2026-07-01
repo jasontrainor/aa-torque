@@ -78,6 +78,32 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="Custom Theme Colors"
+        android:key="customColorsCat">
+
+        <com.aatorque.prefs.ColorPreference
+            android:key="customBackgroundColor"
+            android:title="@string/pref_custom_bg_color"
+            android:persistent="false" />
+
+        <com.aatorque.prefs.ColorPreference
+            android:key="customAccentColor"
+            android:title="@string/pref_custom_accent_color"
+            android:persistent="false" />
+
+        <com.aatorque.prefs.ColorPreference
+            android:key="customNeedleColor"
+            android:title="@string/pref_custom_needle_color"
+            android:persistent="false" />
+
+        <com.aatorque.prefs.ColorPreference
+            android:key="customRedlineColor"
+            android:title="@string/pref_custom_redline_color"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/media">
 
         <CheckBoxPreference

@@ -27,6 +27,7 @@
         <item>Electro Vehicle</item>
         <item>Lexus</item>
         <item>Test</item>
+        <item>Custom</item>
     </string-array>
 
     <array name="ThemesThumbs">
@@ -54,6 +55,7 @@
         <item>@drawable/ic_theme_am</item>
         <item>@drawable/ic_theme_ev</item>
         <item>@drawable/ic_theme_lexus</item>
+        <item>@drawable/ic_theme_test</item>
         <item>@drawable/ic_theme_test</item>
     </array>
 
@@ -83,6 +85,7 @@
         <item>@style/AppTheme.EV</item>
         <item>@style/AppTheme.Lexus</item>
         <item>@style/AppTheme.Testing</item>
+        <item>@style/AppTheme.Custom</item>
     </array>
 
     <string-array name="fontEntries">

@@ -61,6 +61,10 @@ selectedTheme: "Electro Vehicle"
 selectedFont: "ev"
 selectedBackground: "background_incar_ev"
 centerGaugeLarge: true
+customBackgroundColor: -16777216
+customAccentColor: -16711681
+customNeedleColor: -65536
+customRedlineColor: -65536
 """
 
 object UserPreferenceSerializer : Serializer<UserPreference> {

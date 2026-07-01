@@ -213,5 +213,15 @@
                 app:minMax="@{minMax}"
                 app:sv_rayStartSpeed="0" />
 
+            <com.aatorque.stats.ModernTorqueGaugeView
+                android:id="@+id/modernGauge"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/dial"
+                app:layout_constraintLeft_toLeftOf="@+id/dial"
+                app:layout_constraintRight_toRightOf="@+id/dial"
+                app:layout_constraintTop_toTopOf="@+id/dial" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

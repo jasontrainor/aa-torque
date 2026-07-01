@@ -39,6 +39,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
     lateinit var blurArtPref: SeekBarPreference
     lateinit var showSongInfoPref: CheckBoxPreference
     lateinit var fSportLayoutPref: CheckBoxPreference
+    lateinit var customColorsCat: PreferenceCategory
+    lateinit var customBackgroundColorPref: ColorPreference
+    lateinit var customAccentColorPref: ColorPreference
+    lateinit var customNeedleColorPref: ColorPreference
+    lateinit var customRedlineColorPref: ColorPreference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +62,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
         darkenArtPref = findPreference("darkenArtwork")!!
         showSongInfoPref = findPreference("showSongInfo")!!
         fSportLayoutPref = findPreference("fSportLayout")!!
+        customColorsCat = findPreference("customColorsCat")!!
+        customBackgroundColorPref = findPreference("customBackgroundColor")!!
+        customAccentColorPref = findPreference("customAccentColor")!!
+        customNeedleColorPref = findPreference("customNeedleColor")!!
+        customRedlineColorPref = findPreference("customRedlineColor")!!
         themePref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         fontPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         backgroundPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
@@ -88,8 +98,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         themePref.setOnPreferenceChangeListener {
             _, newValue ->
+            customColorsCat.isVisible = (newValue as String) == "Custom"
             updateDatastorePref {
-                it.setSelectedTheme(newValue as String)
+                it.setSelectedTheme(newValue)
             }
             return@setOnPreferenceChangeListener true
         }
@@ -138,6 +149,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 it.setFSportLayout(newValue as Boolean)
             }
             return@setOnPreferenceChangeListener true
+        }
+        customBackgroundColorPref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setCustomBackgroundColor(newValue as Int) }
+            true
+        }
+        customAccentColorPref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setCustomAccentColor(newValue as Int) }
+            true
+        }
+        customNeedleColorPref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setCustomNeedleColor(newValue as Int) }
+            true
+        }
+        customRedlineColorPref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setCustomRedlineColor(newValue as Int) }
+            true
         }
         mediaBgPref.setOnPreferenceChangeListener { preference, newValue ->
             updateDatastorePref {
@@ -195,6 +222,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 blurArtPref.value = it.blurArt
                 darkenArtPref.value = it.darkenArt
                 fSportLayoutPref.isChecked = it.fSportLayout
+                customColorsCat.isVisible = it.selectedTheme == "Custom"
+                customBackgroundColorPref.colorValue = it.customBackgroundColor
+                customAccentColorPref.colorValue = it.customAccentColor
+                customNeedleColorPref.colorValue = it.customNeedleColor
+                customRedlineColorPref.colorValue = it.customRedlineColor
             }
         }
         lifecycleScope.launch {

@@ -13,6 +13,8 @@ import androidx.core.graphics.BlendModeColorFilterCompat
 import androidx.core.graphics.BlendModeCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.aatorque.prefs.dataStore
 import com.aatorque.datastore.Coloring
 import com.aatorque.datastore.MaxControl
 import com.aatorque.prefs.SettingsViewModel
@@ -44,6 +46,10 @@ class TorqueGauge : Fragment() {
     private val mMax: Speedometer
         get() {
             return binding.dialMax
+        }
+    private val mModernGauge: ModernTorqueGaugeView
+        get() {
+            return binding.modernGauge
         }
     lateinit var settingsViewModel: SettingsViewModel
 
@@ -132,6 +138,30 @@ class TorqueGauge : Fragment() {
             turnRaysEnabled(state.getBoolean("rayOn", false))
             turnTickEnabled(state.getBoolean("ticksOn", false))
         }
+        
+        lifecycleScope.launchWhenStarted {
+            requireContext().dataStore.data.collect { prefs ->
+                val isCustom = prefs.selectedTheme == "Custom"
+                if (isCustom) {
+                    mModernGauge.visibility = View.VISIBLE
+                    mClock.visibility = View.INVISIBLE
+                    mRayClock.visibility = View.INVISIBLE
+                    mMax.visibility = View.INVISIBLE
+                    mModernGauge.setColors(
+                        prefs.customBackgroundColor,
+                        prefs.customAccentColor,
+                        prefs.customNeedleColor,
+                        prefs.customRedlineColor
+                    )
+                } else {
+                    mModernGauge.visibility = View.GONE
+                    mClock.visibility = View.VISIBLE
+                    mMax.visibility = if (binding.showLimitMarked != MaxControl.OFF) View.VISIBLE else View.INVISIBLE
+                    mRayClock.visibility = if (rayOn) View.VISIBLE else View.INVISIBLE
+                }
+            }
+        }
+        
         mClock.invalidate()
         updateSweepAngle()
     }
@@ -294,12 +324,16 @@ class TorqueGauge : Fragment() {
         binding.tickFormatter = { _, speed ->
             format.format(locale, speed)
         }
+        mModernGauge.minVal = minLimit
+        mModernGauge.maxVal = maxLimit
+        mModernGauge.redlineThreshold = minLimit + (maxLimit - minLimit) * 0.8f
     }
 
     private fun onUpdate(data: TorqueData) {
         val fVal = data.lastData.toFloat()
         mClock.speedTo(fVal, TorqueRefresher.REFRESH_INTERVAL)
         mRayClock.speedTo(fVal, TorqueRefresher.REFRESH_INTERVAL)
+        mModernGauge.updateValue(fVal)
         if (data.display.maxMarksActive == MaxControl.MAX && data.maxValue.isFinite()) {
             mMax.setSpeedAt(data.maxValue.toFloat())
             Timber.d("Setting max speed ${data.maxValue}")
