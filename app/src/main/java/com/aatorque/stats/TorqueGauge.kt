@@ -48,6 +48,7 @@ class TorqueGauge : Fragment() {
     lateinit var settingsViewModel: SettingsViewModel
 
     private var rayOn = false
+    private var fSportLayoutEnabled = false
     private lateinit var binding: FragmentGaugeBinding
 
 
@@ -75,6 +76,10 @@ class TorqueGauge : Fragment() {
         settingsViewModel.typefaceLiveData.observe(viewLifecycleOwner, this::setupTypeface)
         settingsViewModel.minMaxBelow.observe(viewLifecycleOwner) {
             binding.minMaxBelow = it
+        }
+        settingsViewModel.fSportLayout.observe(viewLifecycleOwner) {
+            fSportLayoutEnabled = it ?: false
+            updateSweepAngle()
         }
         val view = binding.root
         rootView = view
@@ -128,6 +133,29 @@ class TorqueGauge : Fragment() {
             turnTickEnabled(state.getBoolean("ticksOn", false))
         }
         mClock.invalidate()
+        updateSweepAngle()
+    }
+
+    private fun updateSweepAngle() {
+        val (startAngle, endAngle) = if (fSportLayoutEnabled) {
+            when (id) {
+                R.id.gaugeLeft -> Pair(45, 315)
+                R.id.gaugeRight -> Pair(225, 495)
+                else -> Pair(135, 405)
+            }
+        } else {
+            Pair(135, 405)
+        }
+        mClock.setStartDegree(startAngle)
+        mClock.setEndDegree(endAngle)
+        mRayClock.setStartDegree(startAngle)
+        mRayClock.setEndDegree(endAngle)
+        mMax.setStartDegree(startAngle)
+        mMax.setEndDegree(endAngle)
+
+        mClock.invalidate()
+        mRayClock.invalidate()
+        mMax.invalidate()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

@@ -129,6 +129,7 @@ open class DashboardFragment : AlbumArt() {
                 settingsViewModel.chartVisible.value = it.showChart
                 settingsViewModel.minMaxBelow.value = it.minMaxBelow
                 settingsViewModel.showSongInfo.value = it.showSongInfo
+                settingsViewModel.fSportLayout.value = it.fSportLayout
                 shouldDisplayArtwork = it.albumArt
                 shouldShowInfo = it.showSongInfo
 

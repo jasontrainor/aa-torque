@@ -38,6 +38,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     lateinit var darkenArtPref: SeekBarPreference
     lateinit var blurArtPref: SeekBarPreference
     lateinit var showSongInfoPref: CheckBoxPreference
+    lateinit var fSportLayoutPref: CheckBoxPreference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +56,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         blurArtPref = findPreference("blurArtwork")!!
         darkenArtPref = findPreference("darkenArtwork")!!
         showSongInfoPref = findPreference("showSongInfo")!!
+        fSportLayoutPref = findPreference("fSportLayout")!!
         themePref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         fontPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         backgroundPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
@@ -131,6 +133,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             return@setOnPreferenceChangeListener true
         }
+        fSportLayoutPref.setOnPreferenceChangeListener { preference, newValue ->
+            updateDatastorePref {
+                it.setFSportLayout(newValue as Boolean)
+            }
+            return@setOnPreferenceChangeListener true
+        }
         mediaBgPref.setOnPreferenceChangeListener { preference, newValue ->
             updateDatastorePref {
                 if (newValue as Boolean && !NotiService.isNotificationAccessEnabled(requireContext())) {
@@ -186,6 +194,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 opacityPref.value = if (it.opacity == 0) 100 else it.opacity
                 blurArtPref.value = it.blurArt
                 darkenArtPref.value = it.darkenArt
+                fSportLayoutPref.isChecked = it.fSportLayout
             }
         }
         lifecycleScope.launch {

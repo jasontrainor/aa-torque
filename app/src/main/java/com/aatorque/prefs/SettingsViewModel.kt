@@ -12,6 +12,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val chartVisible = MutableLiveData<Boolean>()
     val minMaxBelow = MutableLiveData<Boolean>()
     val showSongInfo = MutableLiveData<Boolean>()
+    val fSportLayout = MutableLiveData<Boolean>()
 
     val typefaceLiveData = selectedFont.map {
         return@map ResourcesCompat.getFont(getApplication(), it)!!

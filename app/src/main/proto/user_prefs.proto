@@ -70,4 +70,5 @@ message UserPreference {
   uint32 blurArt = 26;
   uint32 darkenArt = 27;
   bool showSongInfo = 28;
+  bool fSportLayout = 29;
 }

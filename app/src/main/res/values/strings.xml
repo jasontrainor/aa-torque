@@ -197,4 +197,6 @@
     <string name="color">Color</string>
     <string name="song_info">Song Information</string>
     <string name="song_info_desc">Show current playing song info</string>
+    <string name="pref_fsport">Lexus F-Sport Layout</string>
+    <string name="pref_fsport_desc">Rotate the left and right gauges by 90 degrees</string>
 </resources>
