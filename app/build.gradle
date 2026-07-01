@@ -20,7 +20,7 @@ def ghPackage = "aa-torque"
 
 android {
     namespace "com.aatorque.stats"
-    compileSdk 34
+    compileSdk 36
     defaultConfig {
         applicationId "com.aatorque.stats"
         minSdkVersion 28
@@ -92,7 +92,7 @@ configurations {
 dependencies {
     // Replaced with updated SDK from "https://github.com/cupral/aauto-sdk.git" (as git-submodule)
     //implementation 'com.github.martoreto:aauto-sdk:v4.7'
-    implementation project(path: ':speedviewlib', configuration: 'default')
+    implementation project(path: ':speedviewlib')
     implementation files('../lib/aauto.aar')
 
     implementation 'com.jjoe64:graphview:4.2.2'
