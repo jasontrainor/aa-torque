@@ -153,5 +153,20 @@ abstract class AlbumArt : CarFragment() {
         return state?.position ?: 0L
     }
 
+    fun seekMediaTo(positionMs: Long) {
+        val mediaMan = ContextCompat.getSystemService(
+            requireContext(),
+            MediaSessionManager::class.java
+        ) ?: return
+        val component = ComponentName(requireContext(), NotiService::class.java)
+        try {
+            val sessions = mediaMan.getActiveSessions(component)
+            val activeSession = sessions.find { isActive(it.playbackState) }
+            activeSession?.transportControls?.seekTo(positionMs)
+        } catch (e: SecurityException) {
+            Timber.e("No permission to seek media", e)
+        }
+    }
+
     abstract suspend fun onMediaChanged(metadata: MediaMetadata?, state: PlaybackState?)
 }

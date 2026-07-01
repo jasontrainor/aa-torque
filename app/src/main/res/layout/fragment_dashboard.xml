@@ -172,16 +172,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textSongTitle" />
 
-            <ProgressBar
-                android:id="@+id/mediaProgressBar"
+            <SeekBar
+                android:id="@+id/mediaSeekBar"
                 android:layout_width="500dp"
-                android:layout_height="4dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:progress="@{mediaPosition > 0 &amp;&amp; mediaDuration > 0 ? (int)(mediaPosition * 100 / mediaDuration) : 0}"
                 android:visibility="@{showSongInfo ? View.VISIBLE : View.GONE}"
-                style="?android:attr/progressBarStyleHorizontal"
                 android:progressTint="@android:color/white"
                 android:progressBackgroundTint="#4C4C4C"
+                android:thumbTint="@android:color/white"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textArtist" />

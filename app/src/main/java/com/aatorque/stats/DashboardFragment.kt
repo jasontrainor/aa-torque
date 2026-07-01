@@ -23,7 +23,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.RelativeLayout
 import android.widget.TextView
-import android.widget.ProgressBar
+import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.InputDeviceCompat
 import androidx.fragment.app.FragmentContainerView
@@ -75,6 +75,7 @@ open class DashboardFragment : AlbumArt() {
     var shouldDisplayArtwork = false
     var shouldShowInfo = false
     var displayingArtwork = false
+    private var isSeeking = false
     private var lastMetadata: MediaMetadata? = null
     var albumBlurEffect: RenderEffect? = null
         set(value) {
@@ -277,6 +278,24 @@ open class DashboardFragment : AlbumArt() {
                 }
             }
         }, filter)
+
+        binding.mediaSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                isSeeking = true
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                val duration = binding.mediaDuration ?: 0L
+                if (duration > 0 && seekBar != null) {
+                    val newPosition = (seekBar.progress.toLong() * duration) / 100
+                    seekMediaTo(newPosition)
+                }
+                isSeeking = false
+            }
+        })
+
         return this.rootView
     }
 
@@ -350,7 +369,7 @@ open class DashboardFragment : AlbumArt() {
         // Collect playback state updates and continuously update progress
         lifecycleScope.launch {
             playbackStateChannel.collect { state ->
-                if (state != null) {
+                if (state != null && !isSeeking) {
                     binding.mediaDuration = getMediaDuration(lastMetadata)
                     binding.mediaPosition = getMediaPosition(state)
                 }
@@ -361,9 +380,11 @@ open class DashboardFragment : AlbumArt() {
         lifecycleScope.launch {
             while (coroutineContext.isActive) {
                 delay(500)
-                val state = lastPlaybackState
-                if (isActive(state)) {
-                    binding.mediaPosition = getMediaPosition(state)
+                if (!isSeeking) {
+                    val state = lastPlaybackState
+                    if (isActive(state)) {
+                        binding.mediaPosition = getMediaPosition(state)
+                    }
                 }
             }
         }
@@ -404,7 +425,9 @@ open class DashboardFragment : AlbumArt() {
                 binding.titleString = metaDataToTitle(metadata)
                 binding.artistString = metaDataToArtist(metadata)
                 binding.mediaDuration = getMediaDuration(metadata)
-                binding.mediaPosition = getMediaPosition(state)
+                if (!isSeeking) {
+                    binding.mediaPosition = getMediaPosition(state)
+                }
             } else {
                 binding.titleString = ""
                 binding.artistString = ""
