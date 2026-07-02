@@ -75,4 +75,5 @@ message UserPreference {
   int32 customAccentColor = 31;
   int32 customNeedleColor = 32;
   int32 customRedlineColor = 33;
+  int32 gaugeShape = 34;
 }

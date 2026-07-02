@@ -8,7 +8,6 @@ import android.text.InputType
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
@@ -28,7 +27,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     lateinit var numScreensPref: EditTextPreference
     lateinit var dashboardsCat: PreferenceCategory
     lateinit var backgroundPref: ImageListPreference
-    lateinit var themePref: ImageListPreference
     lateinit var fontPref: ImageListPreference
     lateinit var centerGaugeLargePref: CheckBoxPreference
     lateinit var rotaryInputPref: CheckBoxPreference
@@ -39,11 +37,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     lateinit var blurArtPref: SeekBarPreference
     lateinit var showSongInfoPref: CheckBoxPreference
     lateinit var fSportLayoutPref: CheckBoxPreference
-    lateinit var customColorsCat: PreferenceCategory
-    lateinit var customBackgroundColorPref: ColorPreference
-    lateinit var customAccentColorPref: ColorPreference
-    lateinit var customNeedleColorPref: ColorPreference
-    lateinit var customRedlineColorPref: ColorPreference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +44,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         dashboardsCat = findPreference("dashboardsCat")!!
         numScreensPref = findPreference("dashboardCount")!!
         backgroundPref = findPreference("selectedBackground")!!
-        themePref = findPreference("selectedTheme")!!
         fontPref = findPreference("selectedFont")!!
         centerGaugeLargePref = findPreference("centerGaugeLarge")!!
         rotaryInputPref = findPreference("rotaryInput")!!
@@ -62,14 +54,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         darkenArtPref = findPreference("darkenArtwork")!!
         showSongInfoPref = findPreference("showSongInfo")!!
         fSportLayoutPref = findPreference("fSportLayout")!!
-        customColorsCat = findPreference("customColorsCat")!!
-        customBackgroundColorPref = findPreference("customBackgroundColor")!!
-        customAccentColorPref = findPreference("customAccentColor")!!
-        customNeedleColorPref = findPreference("customNeedleColor")!!
-        customRedlineColorPref = findPreference("customRedlineColor")!!
-        themePref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-        fontPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-        backgroundPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+        fontPref.summaryProvider = androidx.preference.ListPreference.SimpleSummaryProvider.getInstance()
+        backgroundPref.summaryProvider = androidx.preference.ListPreference.SimpleSummaryProvider.getInstance()
         numScreensPref.summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
         numScreensPref.setOnPreferenceChangeListener { _, newValue ->
             val intVal = (newValue as String).toInt()
@@ -96,77 +82,50 @@ class SettingsFragment : PreferenceFragmentCompat() {
             return@setOnPreferenceChangeListener false
         }
 
-        themePref.setOnPreferenceChangeListener {
-            _, newValue ->
-            customColorsCat.isVisible = (newValue as String) == "Custom"
-            updateDatastorePref {
-                it.setSelectedTheme(newValue)
-            }
-            return@setOnPreferenceChangeListener true
-        }
-        fontPref.setOnPreferenceChangeListener {
-                preference, newValue ->
+        fontPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setSelectedFont(newValue as String)
             }
             Timber.i("Setting font $newValue")
             return@setOnPreferenceChangeListener true
         }
-        backgroundPref.setOnPreferenceChangeListener {
-                preference, newValue ->
+        backgroundPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setSelectedBackground(newValue as String)
             }
             return@setOnPreferenceChangeListener true
         }
-        centerGaugeLargePref.setOnPreferenceChangeListener {
-                preference, newValue ->
+        centerGaugeLargePref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setCenterGaugeLarge(newValue as Boolean)
             }
             return@setOnPreferenceChangeListener true
         }
-        rotaryInputPref.setOnPreferenceChangeListener { preference, newValue ->
+        rotaryInputPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setRotaryInput(newValue as Boolean)
             }
             return@setOnPreferenceChangeListener true
         }
-        minMaxBelowPref.setOnPreferenceChangeListener { preference, newValue ->
+        minMaxBelowPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setMinMaxBelow(newValue as Boolean)
             }
             return@setOnPreferenceChangeListener true
         }
-        showSongInfoPref.setOnPreferenceChangeListener { preference, newValue ->
+        showSongInfoPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setShowSongInfo(newValue as Boolean)
             }
             return@setOnPreferenceChangeListener true
         }
-        fSportLayoutPref.setOnPreferenceChangeListener { preference, newValue ->
+        fSportLayoutPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setFSportLayout(newValue as Boolean)
             }
             return@setOnPreferenceChangeListener true
         }
-        customBackgroundColorPref.setOnPreferenceChangeListener { _, newValue ->
-            updateDatastorePref { it.setCustomBackgroundColor(newValue as Int) }
-            true
-        }
-        customAccentColorPref.setOnPreferenceChangeListener { _, newValue ->
-            updateDatastorePref { it.setCustomAccentColor(newValue as Int) }
-            true
-        }
-        customNeedleColorPref.setOnPreferenceChangeListener { _, newValue ->
-            updateDatastorePref { it.setCustomNeedleColor(newValue as Int) }
-            true
-        }
-        customRedlineColorPref.setOnPreferenceChangeListener { _, newValue ->
-            updateDatastorePref { it.setCustomRedlineColor(newValue as Int) }
-            true
-        }
-        mediaBgPref.setOnPreferenceChangeListener { preference, newValue ->
+        mediaBgPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 if (newValue as Boolean && !NotiService.isNotificationAccessEnabled(requireContext())) {
                     startActivity(
@@ -184,19 +143,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             return@setOnPreferenceChangeListener true
         }
-        opacityPref.setOnPreferenceChangeListener { preference, newValue ->
+        opacityPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setOpacity(newValue as Int)
             }
             return@setOnPreferenceChangeListener true
         }
-        darkenArtPref.setOnPreferenceChangeListener { preference, newValue ->
+        darkenArtPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setDarkenArt(newValue as Int)
             }
             return@setOnPreferenceChangeListener true
         }
-        blurArtPref.setOnPreferenceChangeListener { preference, newValue ->
+        blurArtPref.setOnPreferenceChangeListener { _, newValue ->
             updateDatastorePref {
                 it.setBlurArt(newValue as Int)
             }
@@ -210,7 +169,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         lifecycleScope.launch {
             requireContext().dataStore.data.collect {
-                themePref.value = it.selectedTheme
                 fontPref.value = it.selectedFont
                 backgroundPref.value = it.selectedBackground
                 centerGaugeLargePref.isChecked = it.centerGaugeLarge
@@ -222,25 +180,19 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 blurArtPref.value = it.blurArt
                 darkenArtPref.value = it.darkenArt
                 fSportLayoutPref.isChecked = it.fSportLayout
-                customColorsCat.isVisible = it.selectedTheme == "Custom"
-                customBackgroundColorPref.colorValue = it.customBackgroundColor
-                customAccentColorPref.colorValue = it.customAccentColor
-                customNeedleColorPref.colorValue = it.customNeedleColor
-                customRedlineColorPref.colorValue = it.customRedlineColor
             }
         }
         lifecycleScope.launch {
-            requireContext().dataStore.data.distinctUntilChangedBy{
+            requireContext().dataStore.data.distinctUntilChangedBy {
                 it.screensList.map { it.title }
             }.collect { userPreference ->
                 numScreensPref.text = userPreference.screensCount.toString()
                 dashboardsCat.removeAll()
-                userPreference.screensList.forEachIndexed {
-                        i, screen ->
+                userPreference.screensList.forEachIndexed { i, screen ->
                     dashboardsCat.addPreference(Preference(requireContext()).also {
                         it.title = requireContext().getString(
                             R.string.pref_data_element_settings,
-                             i + 1
+                            i + 1
                         )
                         it.key = "dashboard_$i"
                         it.fragment = SettingsDashboard::class.java.canonicalName

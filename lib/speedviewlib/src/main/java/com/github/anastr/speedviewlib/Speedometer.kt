@@ -556,11 +556,21 @@ abstract class Speedometer @JvmOverloads constructor(
     }
 
     /**
+     * When true, the needle sweeps from endDegree→startDegree as speed goes min→max,
+     * producing a mirror-symmetric sweep for the F-Sport right gauge.
+     */
+    var reverseDirection = false
+
+    /**
      * @param speed To know the degree at it.
      * @return Degree at that speed.
      */
     protected fun getDegreeAtSpeed(speed: Float): Float {
-        return (speed - minSpeed) * (endDegree - startDegree) / (maxSpeed - minSpeed) + startDegree
+        val ratio = (speed - minSpeed) / (maxSpeed - minSpeed)
+        return if (reverseDirection)
+            endDegree - ratio * (endDegree - startDegree)
+        else
+            ratio * (endDegree - startDegree) + startDegree
     }
 
     /**
@@ -568,7 +578,10 @@ abstract class Speedometer @JvmOverloads constructor(
      * @return Speed at that degree.
      */
     protected fun getSpeedAtDegree(degree: Float): Float {
-        return (degree - startDegree) * (maxSpeed - minSpeed) / (endDegree - startDegree) + minSpeed
+        return if (reverseDirection)
+            (endDegree - degree) * (maxSpeed - minSpeed) / (endDegree - startDegree) + minSpeed
+        else
+            (degree - startDegree) * (maxSpeed - minSpeed) / (endDegree - startDegree) + minSpeed
     }
 
     protected fun getStartDegree(): Int {

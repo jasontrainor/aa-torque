@@ -130,6 +130,7 @@ open class DashboardFragment : AlbumArt() {
                 settingsViewModel.minMaxBelow.value = it.minMaxBelow
                 settingsViewModel.showSongInfo.value = it.showSongInfo
                 settingsViewModel.fSportLayout.value = it.fSportLayout
+                settingsViewModel.gaugeShape.value = it.gaugeShape
                 shouldDisplayArtwork = it.albumArt
                 shouldShowInfo = it.showSongInfo
 

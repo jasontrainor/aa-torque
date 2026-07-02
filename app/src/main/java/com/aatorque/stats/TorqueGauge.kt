@@ -87,6 +87,10 @@ class TorqueGauge : Fragment() {
             fSportLayoutEnabled = it ?: false
             updateSweepAngle()
         }
+        settingsViewModel.gaugeShape.observe(viewLifecycleOwner) { shape ->
+            mModernGauge.shape = GaugeShape.values().getOrElse(shape ?: 0) { GaugeShape.CIRCULAR }
+            mModernGauge.invalidate()
+        }
         val view = binding.root
         rootView = view
        return rootView
@@ -168,25 +172,28 @@ class TorqueGauge : Fragment() {
     }
 
     private fun updateSweepAngle() {
-        val (startAngle, endAngle) = if (fSportLayoutEnabled) {
+        val rotation = if (fSportLayoutEnabled) {
             when (id) {
-                R.id.gaugeLeft -> Pair(45, 315)
-                R.id.gaugeRight -> Pair(225, 495)
-                else -> Pair(135, 405)
+                R.id.gaugeLeft -> -90f
+                R.id.gaugeRight -> 90f
+                else -> 0f
             }
-        } else {
-            Pair(135, 405)
-        }
-        mClock.setStartDegree(startAngle)
-        mClock.setEndDegree(endAngle)
-        mRayClock.setStartDegree(startAngle)
-        mRayClock.setEndDegree(endAngle)
-        mMax.setStartDegree(startAngle)
-        mMax.setEndDegree(endAngle)
+        } else 0f
 
-        mClock.invalidate()
-        mRayClock.invalidate()
-        mMax.invalidate()
+        val isReversed = fSportLayoutEnabled && id == R.id.gaugeRight
+
+        mClock.rotation = rotation
+        mRayClock.rotation = rotation
+        mMax.rotation = rotation
+        mModernGauge.rotation = rotation
+
+        mClock.reverseDirection = isReversed
+        mRayClock.reverseDirection = isReversed
+        mMax.reverseDirection = isReversed
+
+        mClock.invalidateGauge()
+        mRayClock.invalidateGauge()
+        mMax.invalidateGauge()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
