@@ -3,7 +3,6 @@ package com.aatorque.prefs
 import android.app.AlertDialog
 import android.content.pm.ActivityInfo
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
@@ -239,57 +238,42 @@ class DashboardPreviewFragment : Fragment() {
         gaugeViews.forEach { gv -> gv?.setOnTouchListener(null) }
 
         val gv = gaugeViews[gaugeIndex] ?: return
+        val dashRoot = dashFrag.rootView
 
-        // The preview is inside a RotateLayout rotated -90°. Touch coordinates from the
-        // gauge view arrive in the rotated space. We map them back to the logical dashboard
-        // space by computing the inverse transform of the RotateLayout.
-        var dragStartX = 0f
-        var dragStartY = 0f
+        var dragStartRawX = 0f
+        var dragStartRawY = 0f
         var viewStartTransX = 0f
         var viewStartTransY = 0f
 
         gv.setOnTouchListener { v, event ->
-            // Convert touch point from gauge-view local space to dashboard root space
-            val dashRoot = dashFrag.rootView
-            val touchInRoot = FloatArray(2)
-            touchInRoot[0] = event.rawX
-            touchInRoot[1] = event.rawY
-
-            // Map raw screen coords into the dashboard fragment's coordinate space.
-            // The RotateLayout applies a -90° rotation around its centre — invert that.
-            val rotateLayout = view?.findViewById<View>(R.id.preview_container)?.parent as? View
-            val matrix = Matrix()
-            if (rotateLayout != null) {
-                val cx = rotateLayout.x + rotateLayout.width / 2f
-                val cy = rotateLayout.y + rotateLayout.height / 2f
-                matrix.postTranslate(-cx, -cy)
-                matrix.postRotate(90f)
-                matrix.postTranslate(cx, cy)
-            }
-            matrix.mapPoints(touchInRoot)
-
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    dragStartX = touchInRoot[0]
-                    dragStartY = touchInRoot[1]
+                    dragStartRawX = event.rawX
+                    dragStartRawY = event.rawY
                     viewStartTransX = v.translationX
                     viewStartTransY = v.translationY
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    v.translationX = viewStartTransX + (touchInRoot[0] - dragStartX)
-                    v.translationY = viewStartTransY + (touchInRoot[1] - dragStartY)
+                    v.translationX = viewStartTransX + (event.rawX - dragStartRawX)
+                    v.translationY = viewStartTransY + (event.rawY - dragStartRawY)
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // Snap to nearest grid point
                     val rootW = dashRoot.width.toFloat()
                     val rootH = dashRoot.height.toFloat()
                     if (rootW > 0 && rootH > 0) {
-                        val currentCenterX = (v.left + v.width / 2f + v.translationX)
-                        val currentCenterY = (v.top + v.height / 2f + v.translationY)
-                        val fracX = currentCenterX / rootW
-                        val fracY = currentCenterY / rootH
+                        // Compute gauge centre in dashboard-root coordinates
+                        val rootLoc = IntArray(2)
+                        dashRoot.getLocationOnScreen(rootLoc)
+                        val gvLoc = IntArray(2)
+                        v.getLocationOnScreen(gvLoc)
+
+                        val centerX = (gvLoc[0] - rootLoc[0] + v.width / 2f)
+                        val centerY = (gvLoc[1] - rootLoc[1] + v.height / 2f)
+
+                        val fracX = (centerX / rootW).coerceIn(0f, 1f)
+                        val fracY = (centerY / rootH).coerceIn(0f, 1f)
 
                         val snappedFracX = snapXFractions.minByOrNull { abs(it - fracX) }!!
                         val snappedFracY = snapYFractions.minByOrNull { abs(it - fracY) }!!

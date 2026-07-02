@@ -469,79 +469,222 @@
         <item>needle_vw_white</item>
     </string-array>
 
-    <!-- Dial background picker arrays -->
+    <!-- Dial background picker arrays — all themes, all variants -->
+    <!-- Sorted by display name in picker (ImageListPreference sorts by title).        -->
+    <!-- Names use "(Default)" prefix so it appears first alphabetically.              -->
     <integer-array name="dialBgImages">
         <item>@drawable/dial_background_blank</item>
-        <item>@drawable/dial_background_blank</item>
         <item>@drawable/dial_background_blank_aid</item>
+        <item>@drawable/dial_background_empty_aid</item>
+        <item>@drawable/dial_background_marks_aid</item>
         <item>@drawable/dial_background_blank_am</item>
+        <item>@drawable/dial_background_marks_am</item>
         <item>@drawable/dial_background_blank_audi</item>
+        <item>@drawable/dial_background_audi</item>
+        <item>@drawable/dial_background_marks_audi</item>
         <item>@drawable/dial_background_blank_audi3</item>
+        <item>@drawable/dial_background_audi3</item>
+        <item>@drawable/dial_background_marks_audi3</item>
         <item>@drawable/dial_background_blank_audi4</item>
+        <item>@drawable/dial_background_audi4</item>
+        <item>@drawable/dial_background_marks_audi4</item>
+        <item>@drawable/dial_background_empty_bentley</item>
+        <item>@drawable/dial_background_bentley2</item>
         <item>@drawable/dial_background_blank_bmw</item>
+        <item>@drawable/dial_background_empty_bmw</item>
+        <item>@drawable/dial_background_bmw</item>
         <item>@drawable/dial_background_blank_cupra</item>
+        <item>@drawable/dial_background_empty_cupra</item>
+        <item>@drawable/dial_background_cupra</item>
         <item>@drawable/dial_background_blank_dark</item>
+        <item>@drawable/dial_background_empty_dark</item>
+        <item>@drawable/dial_background_dark</item>
         <item>@drawable/dial_background_blank_ev</item>
+        <item>@drawable/dial_background_marks_ev</item>
         <item>@drawable/dial_background_blank_ford</item>
+        <item>@drawable/dial_background_empty_ford</item>
+        <item>@drawable/dial_background_ford</item>
         <item>@drawable/dial_background_blank_lexus</item>
+        <item>@drawable/dial_background_marks_lexus</item>
         <item>@drawable/dial_background_blank_mib2p</item>
+        <item>@drawable/dial_background_empty_mib2p</item>
+        <item>@drawable/dial_background_mib2p</item>
         <item>@drawable/dial_background_blank_minimal</item>
+        <item>@drawable/dial_background_empty_minimal</item>
+        <item>@drawable/dial_background_empty2_minimal</item>
+        <item>@drawable/dial_background_minimal</item>
+        <item>@drawable/dial_background_marks_minimal</item>
         <item>@drawable/dial_background_blank_mk</item>
+        <item>@drawable/dial_background_marks_mk</item>
         <item>@drawable/dial_background_blank_seat</item>
+        <item>@drawable/dial_background_seat</item>
+        <item>@drawable/dial_background_marks_seat</item>
         <item>@drawable/dial_background_blank_seat2</item>
+        <item>@drawable/dial_background_empty_seat2</item>
+        <item>@drawable/dial_background_seat2</item>
         <item>@drawable/dial_background_blank_skoda</item>
+        <item>@drawable/dial_background_empty_skoda</item>
+        <item>@drawable/dial_background_skoda</item>
         <item>@drawable/dial_background_blank_skoda2</item>
+        <item>@drawable/dial_background_empty_skoda2</item>
+        <item>@drawable/dial_background_skoda2</item>
         <item>@drawable/dial_background_blank_skoda3</item>
+        <item>@drawable/dial_background_skoda3</item>
+        <item>@drawable/dial_background_marks_skoda3</item>
+        <item>@drawable/dial_background_empty_skodaone</item>
+        <item>@drawable/dial_background_marks_skodaone</item>
+        <item>@drawable/dial_background_test</item>
+        <item>@drawable/dial_background_blank</item>
+        <item>@drawable/dial_background_empty</item>
+        <item>@drawable/dial_background</item>
+        <item>@drawable/dial_background_marks</item>
+        <item>@drawable/dial_background_marks_empty</item>
         <item>@drawable/dial_background_blank_vw2</item>
+        <item>@drawable/dial_background_empty_vw2</item>
+        <item>@drawable/dial_background_vw2</item>
     </integer-array>
 
     <string-array name="dialBgEntries" translatable="false">
-        <item>@string/dial_bg_default</item>
-        <item>@string/dial_bg_blank</item>
-        <item>@string/dial_bg_blank_aid</item>
-        <item>@string/dial_bg_blank_am</item>
-        <item>@string/dial_bg_blank_audi</item>
-        <item>@string/dial_bg_blank_audi3</item>
-        <item>@string/dial_bg_blank_audi4</item>
-        <item>@string/dial_bg_blank_bmw</item>
-        <item>@string/dial_bg_blank_cupra</item>
-        <item>@string/dial_bg_blank_dark</item>
-        <item>@string/dial_bg_blank_ev</item>
-        <item>@string/dial_bg_blank_ford</item>
-        <item>@string/dial_bg_blank_lexus</item>
-        <item>@string/dial_bg_blank_mib2p</item>
-        <item>@string/dial_bg_blank_minimal</item>
-        <item>@string/dial_bg_blank_mk</item>
-        <item>@string/dial_bg_blank_seat</item>
-        <item>@string/dial_bg_blank_seat2</item>
-        <item>@string/dial_bg_blank_skoda</item>
-        <item>@string/dial_bg_blank_skoda2</item>
-        <item>@string/dial_bg_blank_skoda3</item>
-        <item>@string/dial_bg_blank_vw2</item>
+        <item>(Default)</item>
+        <item>AID (Blank)</item>
+        <item>AID (Empty)</item>
+        <item>AID (Marks)</item>
+        <item>Aston Martin (Blank)</item>
+        <item>Aston Martin (Marks)</item>
+        <item>Audi (Blank)</item>
+        <item>Audi (Full)</item>
+        <item>Audi (Marks)</item>
+        <item>Audi 3 (Blank)</item>
+        <item>Audi 3 (Full)</item>
+        <item>Audi 3 (Marks)</item>
+        <item>Audi 4 (Blank)</item>
+        <item>Audi 4 (Full)</item>
+        <item>Audi 4 (Marks)</item>
+        <item>Bentley (Empty)</item>
+        <item>Bentley (Full)</item>
+        <item>BMW (Blank)</item>
+        <item>BMW (Empty)</item>
+        <item>BMW (Full)</item>
+        <item>Cupra (Blank)</item>
+        <item>Cupra (Empty)</item>
+        <item>Cupra (Full)</item>
+        <item>Dark (Blank)</item>
+        <item>Dark (Empty)</item>
+        <item>Dark (Full)</item>
+        <item>EV (Blank)</item>
+        <item>EV (Marks)</item>
+        <item>Ford (Blank)</item>
+        <item>Ford (Empty)</item>
+        <item>Ford (Full)</item>
+        <item>Lexus (Blank)</item>
+        <item>Lexus (Marks)</item>
+        <item>MIB2+ (Blank)</item>
+        <item>MIB2+ (Empty)</item>
+        <item>MIB2+ (Full)</item>
+        <item>Minimalistic (Blank)</item>
+        <item>Minimalistic (Empty)</item>
+        <item>Minimalistic (Empty 2)</item>
+        <item>Minimalistic (Full)</item>
+        <item>Minimalistic (Marks)</item>
+        <item>Monte Carlo (Blank)</item>
+        <item>Monte Carlo (Marks)</item>
+        <item>Seat (Blank)</item>
+        <item>Seat (Full)</item>
+        <item>Seat (Marks)</item>
+        <item>Seat 2 (Blank)</item>
+        <item>Seat 2 (Empty)</item>
+        <item>Seat 2 (Full)</item>
+        <item>Skoda (Blank)</item>
+        <item>Skoda (Empty)</item>
+        <item>Skoda (Full)</item>
+        <item>Skoda 2 (Blank)</item>
+        <item>Skoda 2 (Empty)</item>
+        <item>Skoda 2 (Full)</item>
+        <item>Skoda 3 (Blank)</item>
+        <item>Skoda 3 (Full)</item>
+        <item>Skoda 3 (Marks)</item>
+        <item>Skoda ONE (Empty)</item>
+        <item>Skoda ONE (Marks)</item>
+        <item>Test</item>
+        <item>VW (Blank)</item>
+        <item>VW (Empty)</item>
+        <item>VW (Full)</item>
+        <item>VW (Marks)</item>
+        <item>VW (Marks Empty)</item>
+        <item>VW 2 (Blank)</item>
+        <item>VW 2 (Empty)</item>
+        <item>VW 2 (Full)</item>
     </string-array>
 
     <string-array name="dialBgValues" translatable="false">
         <item></item>
-        <item>dial_background_blank</item>
         <item>dial_background_blank_aid</item>
+        <item>dial_background_empty_aid</item>
+        <item>dial_background_marks_aid</item>
         <item>dial_background_blank_am</item>
+        <item>dial_background_marks_am</item>
         <item>dial_background_blank_audi</item>
+        <item>dial_background_audi</item>
+        <item>dial_background_marks_audi</item>
         <item>dial_background_blank_audi3</item>
+        <item>dial_background_audi3</item>
+        <item>dial_background_marks_audi3</item>
         <item>dial_background_blank_audi4</item>
+        <item>dial_background_audi4</item>
+        <item>dial_background_marks_audi4</item>
+        <item>dial_background_empty_bentley</item>
+        <item>dial_background_bentley2</item>
         <item>dial_background_blank_bmw</item>
+        <item>dial_background_empty_bmw</item>
+        <item>dial_background_bmw</item>
         <item>dial_background_blank_cupra</item>
+        <item>dial_background_empty_cupra</item>
+        <item>dial_background_cupra</item>
         <item>dial_background_blank_dark</item>
+        <item>dial_background_empty_dark</item>
+        <item>dial_background_dark</item>
         <item>dial_background_blank_ev</item>
+        <item>dial_background_marks_ev</item>
         <item>dial_background_blank_ford</item>
+        <item>dial_background_empty_ford</item>
+        <item>dial_background_ford</item>
         <item>dial_background_blank_lexus</item>
+        <item>dial_background_marks_lexus</item>
         <item>dial_background_blank_mib2p</item>
+        <item>dial_background_empty_mib2p</item>
+        <item>dial_background_mib2p</item>
         <item>dial_background_blank_minimal</item>
+        <item>dial_background_empty_minimal</item>
+        <item>dial_background_empty2_minimal</item>
+        <item>dial_background_minimal</item>
+        <item>dial_background_marks_minimal</item>
         <item>dial_background_blank_mk</item>
+        <item>dial_background_marks_mk</item>
         <item>dial_background_blank_seat</item>
+        <item>dial_background_seat</item>
+        <item>dial_background_marks_seat</item>
         <item>dial_background_blank_seat2</item>
+        <item>dial_background_empty_seat2</item>
+        <item>dial_background_seat2</item>
         <item>dial_background_blank_skoda</item>
+        <item>dial_background_empty_skoda</item>
+        <item>dial_background_skoda</item>
         <item>dial_background_blank_skoda2</item>
+        <item>dial_background_empty_skoda2</item>
+        <item>dial_background_skoda2</item>
         <item>dial_background_blank_skoda3</item>
+        <item>dial_background_skoda3</item>
+        <item>dial_background_marks_skoda3</item>
+        <item>dial_background_empty_skodaone</item>
+        <item>dial_background_marks_skodaone</item>
+        <item>dial_background_test</item>
+        <item>dial_background_blank</item>
+        <item>dial_background_empty</item>
+        <item>dial_background</item>
+        <item>dial_background_marks</item>
+        <item>dial_background_marks_empty</item>
         <item>dial_background_blank_vw2</item>
+        <item>dial_background_empty_vw2</item>
+        <item>dial_background_vw2</item>
     </string-array>
 </resources>
