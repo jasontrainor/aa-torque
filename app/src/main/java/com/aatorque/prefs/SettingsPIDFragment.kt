@@ -55,6 +55,8 @@ class SettingsPIDFragment:  PreferenceFragmentCompat() {
     lateinit var maxMarksActivePref: ListPreference
     lateinit var highVisActivePref: CheckBoxPreference
     lateinit var colorPref: ColorPreference
+    lateinit var customNeedlePref: ImageListPreference
+    lateinit var customDialBgPref: ImageListPreference
 
     var torqueService: TorqueServiceWrapper? = null
 
@@ -110,6 +112,8 @@ class SettingsPIDFragment:  PreferenceFragmentCompat() {
         maxMarksActivePref = findPreference("maxMarksActive")!!
         highVisActivePref = findPreference("highVisActive")!!
         colorPref = findPreference("chartColor")!!
+        customNeedlePref = findPreference("customNeedle")!!
+        customDialBgPref = findPreference("customDialBackground")!!
         findPreference<Preference>("indicatorColor")!!.extras.putCharSequence("prefix", prefix)
 
         pidPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
@@ -191,6 +195,8 @@ class SettingsPIDFragment:  PreferenceFragmentCompat() {
                 maxValuesActivePref.value = display.maxValuesActive.number.toString()
                 maxMarksActivePref.value = display.maxMarksActive.number.toString()
                 highVisActivePref.isChecked = display.highVisActive
+                customNeedlePref.value = display.customNeedle.ifEmpty { "" }
+                customDialBgPref.value = display.customDialBackground.ifEmpty { "" }
                 colorPref.colorValue = display.chartColor.let {
                     if (!isClock) {
                         Color.WHITE
@@ -219,9 +225,13 @@ class SettingsPIDFragment:  PreferenceFragmentCompat() {
             gaugeSettings.isEnabled = enabled
             imagePref.isEnabled = enabled
             labelPref.isEnabled = enabled
+            customNeedlePref.isVisible = true
+            customDialBgPref.isVisible = true
         } else {
             imagePref.isEnabled = if (enabled) !showLabelPref.isChecked else false
             labelPref.isEnabled = if (enabled) showLabelPref.isChecked else false
+            customNeedlePref.isVisible = false
+            customDialBgPref.isVisible = false
         }
     }
 
@@ -274,6 +284,10 @@ class SettingsPIDFragment:  PreferenceFragmentCompat() {
             highVisActivePref.isChecked
         ).setChartColor(
             colorPref.colorValue
+        ).setCustomNeedle(
+            customNeedlePref.value ?: ""
+        ).setCustomDialBackground(
+            customDialBgPref.value ?: ""
         )
         if (imagePref.value != null) {
             display = display.setIcon(imagePref.value)

@@ -47,6 +47,115 @@
                 android:textSize="18sp"
                 android:layout_marginBottom="12dp" />
 
+            <!-- Gauge selector row -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Selected Gauge"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginBottom="6dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="3"
+                android:layout_marginBottom="12dp">
+
+                <Button
+                    android:id="@+id/btn_gauge_1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="G1"
+                    android:layout_marginEnd="4dp" />
+
+                <Button
+                    android:id="@+id/btn_gauge_2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="G2"
+                    android:layout_marginEnd="4dp" />
+
+                <Button
+                    android:id="@+id/btn_gauge_3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="G3" />
+
+            </LinearLayout>
+
+            <!-- Per-gauge: rotation -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gauge Rotation"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <SeekBar
+                    android:id="@+id/seekbar_rotation"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="360"
+                    android:progress="0" />
+
+                <TextView
+                    android:id="@+id/text_rotation_value"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:text="0°"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:gravity="end"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- Per-gauge: flip sweep direction -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Flip Sweep Direction"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical" />
+
+                <Switch
+                    android:id="@+id/switch_flip_sweep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false" />
+
+            </LinearLayout>
+
+            <!-- Per-gauge: drag hint -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Drag gauges in the preview above to reposition — they snap to a grid"
+                android:textColor="#AAAAAA"
+                android:textSize="11sp"
+                android:layout_marginBottom="12dp" />
+
             <!-- Gauge Shape Row -->
             <TextView
                 android:layout_width="wrap_content"

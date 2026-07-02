@@ -93,6 +93,22 @@
         android:key="gaugeSettings"
         android:title="@string/gauge_settings"
         android:enabled="false">
+        <com.aatorque.prefs.ImageListPreference
+            android:key="customNeedle"
+            android:title="@string/pref_gauge_needle"
+            android:summary="@string/pref_gauge_needle_desc"
+            app:entryImages="@array/needleImages"
+            android:entries="@array/needleEntries"
+            android:entryValues="@array/needleValues"
+            android:persistent="false" />
+        <com.aatorque.prefs.ImageListPreference
+            android:key="customDialBackground"
+            android:title="@string/pref_gauge_dial_bg"
+            android:summary="@string/pref_gauge_dial_bg_desc"
+            app:entryImages="@array/dialBgImages"
+            android:entries="@array/dialBgEntries"
+            android:entryValues="@array/dialBgValues"
+            android:persistent="false" />
         <com.aatorque.prefs.ColorPreference
             android:key="chartColor"
             android:title="@string/pref_chart_title"

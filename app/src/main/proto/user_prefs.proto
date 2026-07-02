@@ -47,6 +47,12 @@ message Display {
   bool highVisActive = 19;
   int32 chartColor = 24;
   repeated Coloring alarms = 26;
+  float gaugeRotation = 27;
+  bool reverseSweep = 28;
+  string customNeedle = 29;
+  string customDialBackground = 30;
+  float gaugePosX = 31;
+  float gaugePosY = 32;
 }
 
 message Screen {

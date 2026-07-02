@@ -162,6 +162,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             return@setOnPreferenceChangeListener true
         }
         blurArtPref.isVisible = Build.VERSION.SDK_INT >= 31
+        fSportLayoutPref.isVisible = false
 
         numScreensPref.setOnBindEditTextListener {
             it.inputType = InputType.TYPE_CLASS_NUMBER

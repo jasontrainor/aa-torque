@@ -380,4 +380,168 @@
         <item>@color/graphColor2</item>
         <item>@color/graphColor3</item>
     </array>
+
+    <!-- Needle picker arrays -->
+    <integer-array name="needleImages">
+        <item>@drawable/needle</item>
+        <item>@drawable/needle</item>
+        <item>@drawable/needle_aid</item>
+        <item>@drawable/needle_am</item>
+        <item>@drawable/needle_audi3</item>
+        <item>@drawable/needle_audi4</item>
+        <item>@drawable/needle_audi_red</item>
+        <item>@drawable/needle_bentley</item>
+        <item>@drawable/needle_bmw</item>
+        <item>@drawable/needle_cupra</item>
+        <item>@drawable/needle_dark</item>
+        <item>@drawable/needle_ev</item>
+        <item>@drawable/needle_lexus</item>
+        <item>@drawable/needle_mib2p</item>
+        <item>@drawable/needle_mk</item>
+        <item>@drawable/needle_seat</item>
+        <item>@drawable/needle_seatmqb</item>
+        <item>@drawable/needle_skoda</item>
+        <item>@drawable/needle_skoda_2</item>
+        <item>@drawable/needle_skodaone</item>
+        <item>@drawable/needle_test</item>
+        <item>@drawable/needle_vw2</item>
+        <item>@drawable/needle_vw3</item>
+        <item>@drawable/needle_vw_blue</item>
+        <item>@drawable/needle_vw_red</item>
+        <item>@drawable/needle_vw_white</item>
+    </integer-array>
+
+    <string-array name="needleEntries" translatable="false">
+        <item>@string/needle_default</item>
+        <item>@string/needle_vw</item>
+        <item>@string/needle_aid</item>
+        <item>@string/needle_am</item>
+        <item>@string/needle_audi3</item>
+        <item>@string/needle_audi4</item>
+        <item>@string/needle_audi_red</item>
+        <item>@string/needle_bentley</item>
+        <item>@string/needle_bmw</item>
+        <item>@string/needle_cupra</item>
+        <item>@string/needle_dark</item>
+        <item>@string/needle_ev</item>
+        <item>@string/needle_lexus</item>
+        <item>@string/needle_mib2p</item>
+        <item>@string/needle_mk</item>
+        <item>@string/needle_seat</item>
+        <item>@string/needle_seatmqb</item>
+        <item>@string/needle_skoda</item>
+        <item>@string/needle_skoda_2</item>
+        <item>@string/needle_skodaone</item>
+        <item>@string/needle_test</item>
+        <item>@string/needle_vw2</item>
+        <item>@string/needle_vw3</item>
+        <item>@string/needle_vw_blue</item>
+        <item>@string/needle_vw_red</item>
+        <item>@string/needle_vw_white</item>
+    </string-array>
+
+    <string-array name="needleValues" translatable="false">
+        <item></item>
+        <item>needle</item>
+        <item>needle_aid</item>
+        <item>needle_am</item>
+        <item>needle_audi3</item>
+        <item>needle_audi4</item>
+        <item>needle_audi_red</item>
+        <item>needle_bentley</item>
+        <item>needle_bmw</item>
+        <item>needle_cupra</item>
+        <item>needle_dark</item>
+        <item>needle_ev</item>
+        <item>needle_lexus</item>
+        <item>needle_mib2p</item>
+        <item>needle_mk</item>
+        <item>needle_seat</item>
+        <item>needle_seatmqb</item>
+        <item>needle_skoda</item>
+        <item>needle_skoda_2</item>
+        <item>needle_skodaone</item>
+        <item>needle_test</item>
+        <item>needle_vw2</item>
+        <item>needle_vw3</item>
+        <item>needle_vw_blue</item>
+        <item>needle_vw_red</item>
+        <item>needle_vw_white</item>
+    </string-array>
+
+    <!-- Dial background picker arrays -->
+    <integer-array name="dialBgImages">
+        <item>@drawable/dial_background_blank</item>
+        <item>@drawable/dial_background_blank</item>
+        <item>@drawable/dial_background_blank_aid</item>
+        <item>@drawable/dial_background_blank_am</item>
+        <item>@drawable/dial_background_blank_audi</item>
+        <item>@drawable/dial_background_blank_audi3</item>
+        <item>@drawable/dial_background_blank_audi4</item>
+        <item>@drawable/dial_background_blank_bmw</item>
+        <item>@drawable/dial_background_blank_cupra</item>
+        <item>@drawable/dial_background_blank_dark</item>
+        <item>@drawable/dial_background_blank_ev</item>
+        <item>@drawable/dial_background_blank_ford</item>
+        <item>@drawable/dial_background_blank_lexus</item>
+        <item>@drawable/dial_background_blank_mib2p</item>
+        <item>@drawable/dial_background_blank_minimal</item>
+        <item>@drawable/dial_background_blank_mk</item>
+        <item>@drawable/dial_background_blank_seat</item>
+        <item>@drawable/dial_background_blank_seat2</item>
+        <item>@drawable/dial_background_blank_skoda</item>
+        <item>@drawable/dial_background_blank_skoda2</item>
+        <item>@drawable/dial_background_blank_skoda3</item>
+        <item>@drawable/dial_background_blank_vw2</item>
+    </integer-array>
+
+    <string-array name="dialBgEntries" translatable="false">
+        <item>@string/dial_bg_default</item>
+        <item>@string/dial_bg_blank</item>
+        <item>@string/dial_bg_blank_aid</item>
+        <item>@string/dial_bg_blank_am</item>
+        <item>@string/dial_bg_blank_audi</item>
+        <item>@string/dial_bg_blank_audi3</item>
+        <item>@string/dial_bg_blank_audi4</item>
+        <item>@string/dial_bg_blank_bmw</item>
+        <item>@string/dial_bg_blank_cupra</item>
+        <item>@string/dial_bg_blank_dark</item>
+        <item>@string/dial_bg_blank_ev</item>
+        <item>@string/dial_bg_blank_ford</item>
+        <item>@string/dial_bg_blank_lexus</item>
+        <item>@string/dial_bg_blank_mib2p</item>
+        <item>@string/dial_bg_blank_minimal</item>
+        <item>@string/dial_bg_blank_mk</item>
+        <item>@string/dial_bg_blank_seat</item>
+        <item>@string/dial_bg_blank_seat2</item>
+        <item>@string/dial_bg_blank_skoda</item>
+        <item>@string/dial_bg_blank_skoda2</item>
+        <item>@string/dial_bg_blank_skoda3</item>
+        <item>@string/dial_bg_blank_vw2</item>
+    </string-array>
+
+    <string-array name="dialBgValues" translatable="false">
+        <item></item>
+        <item>dial_background_blank</item>
+        <item>dial_background_blank_aid</item>
+        <item>dial_background_blank_am</item>
+        <item>dial_background_blank_audi</item>
+        <item>dial_background_blank_audi3</item>
+        <item>dial_background_blank_audi4</item>
+        <item>dial_background_blank_bmw</item>
+        <item>dial_background_blank_cupra</item>
+        <item>dial_background_blank_dark</item>
+        <item>dial_background_blank_ev</item>
+        <item>dial_background_blank_ford</item>
+        <item>dial_background_blank_lexus</item>
+        <item>dial_background_blank_mib2p</item>
+        <item>dial_background_blank_minimal</item>
+        <item>dial_background_blank_mk</item>
+        <item>dial_background_blank_seat</item>
+        <item>dial_background_blank_seat2</item>
+        <item>dial_background_blank_skoda</item>
+        <item>dial_background_blank_skoda2</item>
+        <item>dial_background_blank_skoda3</item>
+        <item>dial_background_blank_vw2</item>
+    </string-array>
 </resources>

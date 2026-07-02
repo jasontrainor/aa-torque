@@ -129,7 +129,6 @@ open class DashboardFragment : AlbumArt() {
                 settingsViewModel.chartVisible.value = it.showChart
                 settingsViewModel.minMaxBelow.value = it.minMaxBelow
                 settingsViewModel.showSongInfo.value = it.showSongInfo
-                settingsViewModel.fSportLayout.value = it.fSportLayout
                 settingsViewModel.gaugeShape.value = it.gaugeShape
                 shouldDisplayArtwork = it.albumArt
                 shouldShowInfo = it.showSongInfo
@@ -148,6 +147,7 @@ open class DashboardFragment : AlbumArt() {
                             val clock = torqueRefresher.populateQuery(index, screenIndex, display)
                             guages[index]?.setupClock(clock)
                         }
+                        applyGaugePosition(index, display.gaugePosX, display.gaugePosY)
                     }
                 }
                 screens.displaysList.forEachIndexed { index, display ->
@@ -301,6 +301,26 @@ open class DashboardFragment : AlbumArt() {
         return this.rootView
     }
 
+
+    fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
+        val gv = gaugeViews[index] ?: return
+        gv.post {
+            if (posX >= 0f) {
+                val defaultCenterX = gv.left + gv.width / 2f
+                val targetCenterX = rootView.width * posX
+                gv.translationX = targetCenterX - defaultCenterX
+            } else {
+                gv.translationX = 0f
+            }
+            if (posY >= 0f) {
+                val defaultCenterY = gv.top + gv.height / 2f
+                val targetCenterY = rootView.height * posY
+                gv.translationY = targetCenterY - defaultCenterY
+            } else {
+                gv.translationY = 0f
+            }
+        }
+    }
 
     fun setScreen(direction: Int) {
         if (screensAnimating) return

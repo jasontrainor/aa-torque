@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.aatorque.prefs.dataStore
 import com.aatorque.datastore.Coloring
+import com.aatorque.datastore.Display
 import com.aatorque.datastore.MaxControl
 import com.aatorque.prefs.SettingsViewModel
 import com.aatorque.stats.databinding.FragmentGaugeBinding
@@ -54,7 +55,6 @@ class TorqueGauge : Fragment() {
     lateinit var settingsViewModel: SettingsViewModel
 
     private var rayOn = false
-    private var fSportLayoutEnabled = false
     private lateinit var binding: FragmentGaugeBinding
 
 
@@ -82,10 +82,6 @@ class TorqueGauge : Fragment() {
         settingsViewModel.typefaceLiveData.observe(viewLifecycleOwner, this::setupTypeface)
         settingsViewModel.minMaxBelow.observe(viewLifecycleOwner) {
             binding.minMaxBelow = it
-        }
-        settingsViewModel.fSportLayout.observe(viewLifecycleOwner) {
-            fSportLayoutEnabled = it ?: false
-            updateSweepAngle()
         }
         settingsViewModel.gaugeShape.observe(viewLifecycleOwner) { shape ->
             mModernGauge.shape = GaugeShape.values().getOrElse(shape ?: 0) { GaugeShape.CIRCULAR }
@@ -168,19 +164,11 @@ class TorqueGauge : Fragment() {
         }
         
         mClock.invalidate()
-        updateSweepAngle()
     }
 
-    private fun updateSweepAngle() {
-        val rotation = if (fSportLayoutEnabled) {
-            when (id) {
-                R.id.gaugeLeft -> -90f
-                R.id.gaugeRight -> 90f
-                else -> 0f
-            }
-        } else 0f
-
-        val isReversed = fSportLayoutEnabled && id == R.id.gaugeRight
+    private fun applyVisuals(display: Display) {
+        val rotation = display.gaugeRotation
+        val isReversed = display.reverseSweep
 
         mClock.rotation = rotation
         mRayClock.rotation = rotation
@@ -190,6 +178,24 @@ class TorqueGauge : Fragment() {
         mClock.reverseDirection = isReversed
         mRayClock.reverseDirection = isReversed
         mMax.reverseDirection = isReversed
+
+        if (display.customNeedle.isNotEmpty()) {
+            val resId = resources.getIdentifier(display.customNeedle, "drawable", requireContext().packageName)
+            if (resId != 0) {
+                val drawable = requireContext().getDrawable(resId)
+                if (drawable != null) {
+                    mClock.indicator = SizedImageIndicator(requireContext(), drawable)
+                    mClock.indicatorLightColor = android.graphics.Color.parseColor("#00FFFFFF")
+                }
+            }
+        }
+
+        if (display.customDialBackground.isNotEmpty()) {
+            val resId = resources.getIdentifier(display.customDialBackground, "drawable", requireContext().packageName)
+            if (resId != 0) {
+                mClock.setImageSpeedometer(resId)
+            }
+        }
 
         mClock.invalidateGauge()
         mRayClock.invalidateGauge()
@@ -309,6 +315,7 @@ class TorqueGauge : Fragment() {
         turnMinMaxTextViewsEnabled(data.display.maxValuesActive)
         turnRaysEnabled(data.display.highVisActive)
         turnWholeNumbers(data.display.wholeNumbers)
+        applyVisuals(data.display)
 
         alarmObserver.bind(viewLifecycleOwner, data.currentAlarm)
     }
