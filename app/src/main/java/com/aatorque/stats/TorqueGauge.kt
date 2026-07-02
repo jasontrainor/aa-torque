@@ -143,6 +143,7 @@ class TorqueGauge : Fragment() {
             requireContext().dataStore.data.collect { prefs ->
                 val isCustom = prefs.selectedTheme == "Custom"
                 if (isCustom) {
+                    mModernGauge.isPreviewMode = requireActivity() is com.aatorque.prefs.SettingsActivity
                     mModernGauge.visibility = View.VISIBLE
                     mClock.visibility = View.INVISIBLE
                     mRayClock.visibility = View.INVISIBLE

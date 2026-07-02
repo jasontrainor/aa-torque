@@ -16,6 +16,12 @@ import androidx.fragment.app.Fragment
 import com.aatorque.stats.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import android.widget.Button
+import android.widget.LinearLayout
+import android.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
+import com.rarepebble.colorpicker.ColorPickerView
+import kotlinx.coroutines.launch
 
 
 class DashboardPreviewFragment: Fragment() {
@@ -36,6 +42,67 @@ class DashboardPreviewFragment: Fragment() {
         inflater.context.setTheme(mapTheme(requireContext(), data.selectedTheme))
         forceRotate(true)
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        val panel = view.findViewById<LinearLayout>(R.id.theme_builder_panel)
+        val btnBg = view.findViewById<Button>(R.id.btn_bg_color)
+        val btnAccent = view.findViewById<Button>(R.id.btn_accent_color)
+        val btnNeedle = view.findViewById<Button>(R.id.btn_needle_color)
+        val btnRedline = view.findViewById<Button>(R.id.btn_redline_color)
+        
+        lifecycleScope.launch {
+            requireContext().dataStore.data.collect { prefs ->
+                panel.visibility = if (prefs.selectedTheme == "Custom") View.VISIBLE else View.GONE
+                
+                btnBg.setOnClickListener {
+                    pickColor("Background Color", prefs.customBackgroundColor) { color ->
+                        lifecycleScope.launch {
+                            requireContext().dataStore.updateData { it.toBuilder().setCustomBackgroundColor(color).build() }
+                        }
+                    }
+                }
+                btnAccent.setOnClickListener {
+                    pickColor("Accent Color", prefs.customAccentColor) { color ->
+                        lifecycleScope.launch {
+                            requireContext().dataStore.updateData { it.toBuilder().setCustomAccentColor(color).build() }
+                        }
+                    }
+                }
+                btnNeedle.setOnClickListener {
+                    pickColor("Needle Color", prefs.customNeedleColor) { color ->
+                        lifecycleScope.launch {
+                            requireContext().dataStore.updateData { it.toBuilder().setCustomNeedleColor(color).build() }
+                        }
+                    }
+                }
+                btnRedline.setOnClickListener {
+                    pickColor("Redline Color", prefs.customRedlineColor) { color ->
+                        lifecycleScope.launch {
+                            requireContext().dataStore.updateData { it.toBuilder().setCustomRedlineColor(color).build() }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun pickColor(title: String, initialColor: Int, onColorSelected: (Int) -> Unit) {
+        val picker = ColorPickerView(requireContext())
+        picker.showHex(false)
+        picker.color = initialColor
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setView(picker)
+            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                onColorSelected(picker.color)
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     fun forceRotate(isOn: Boolean) {

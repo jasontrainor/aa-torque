@@ -23,6 +23,7 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
     var maxVal = 100f
     var currentVal = 0f
     var redlineThreshold = 80f
+    var isPreviewMode = false
 
     var bgColor = Color.DKGRAY
     var accentColor = Color.CYAN
@@ -109,7 +110,11 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         val range = maxVal - minVal
         if (range <= 0) return
         
-        val valuePercentage = (currentVal - minVal) / range
+        var valuePercentage = (currentVal - minVal) / range
+        if (isPreviewMode) {
+            valuePercentage = 0.65f // Show a representative value in preview
+        }
+        
         val redlinePercentage = (redlineThreshold - minVal) / range
         
         // Draw active segments
@@ -122,7 +127,9 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
             canvas.drawArc(rectF, startAngle, normalSweep, false, accentPaint)
             canvas.drawArc(rectF, startAngle + normalSweep, redlineSweep, false, redlinePaint)
         } else {
-            canvas.drawArc(rectF, startAngle, activeSweep, false, accentPaint)
+            // Even if activeSweep is 0, let's draw a tiny dot so the accent color is visible if not preview mode
+            val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
+            canvas.drawArc(rectF, startAngle, sweep, false, accentPaint)
         }
         
         // Draw needle indicator
@@ -145,7 +152,8 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         
         val range = maxVal - minVal
         if (range <= 0) return
-        val valuePercentage = (currentVal - minVal) / range
+        var valuePercentage = (currentVal - minVal) / range
+        if (isPreviewMode) valuePercentage = 0.65f
         
         canvas.drawLine(15f, cy, 15f + w * valuePercentage, cy, accentPaint)
         canvas.drawCircle(15f + w * valuePercentage, cy, bgPaint.strokeWidth * 0.8f, needlePaint)
@@ -159,7 +167,8 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         
         val range = maxVal - minVal
         if (range <= 0) return
-        val valuePercentage = (currentVal - minVal) / range
+        var valuePercentage = (currentVal - minVal) / range
+        if (isPreviewMode) valuePercentage = 0.65f
         
         canvas.drawLine(cx, h + 15f, cx, h + 15f - (h * valuePercentage), accentPaint)
         canvas.drawCircle(cx, h + 15f - (h * valuePercentage), bgPaint.strokeWidth * 0.8f, needlePaint)
