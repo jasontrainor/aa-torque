@@ -46,6 +46,12 @@ class DashboardPreviewFragment : Fragment() {
     private val snapXFractions = floatArrayOf(1f/12, 3f/12, 5f/12, 6f/12, 7f/12, 9f/12, 11f/12)
     private val snapYFractions = floatArrayOf(1f/6, 3f/6, 5f/6)
 
+    // Hold references so color button clicks can read current values
+    private var currentBgColor = 0
+    private var currentAccentColor = 0
+    private var currentNeedleColor = 0
+    private var currentRedlineColor = 0
+
     companion object {
         val hideBars = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.navigationBars()
 
@@ -81,7 +87,6 @@ class DashboardPreviewFragment : Fragment() {
         inflater.context.setTheme(mapTheme(requireContext(), data.selectedTheme))
         forceRotate(true)
 
-        // Ensure the designer always uses the custom (programmatic) gauge renderer
         if (data.selectedTheme != "Custom") {
             lifecycleScope.launch {
                 requireContext().dataStore.updateData {
@@ -99,45 +104,84 @@ class DashboardPreviewFragment : Fragment() {
         val btnG1 = view.findViewById<Button>(R.id.btn_gauge_1)
         val btnG2 = view.findViewById<Button>(R.id.btn_gauge_2)
         val btnG3 = view.findViewById<Button>(R.id.btn_gauge_3)
-        val seekRotation = view.findViewById<SeekBar>(R.id.seekbar_rotation)
-        val textRotation = view.findViewById<TextView>(R.id.text_rotation_value)
-        val switchFlip = view.findViewById<Switch>(R.id.switch_flip_sweep)
 
-        val btnBg = view.findViewById<Button>(R.id.btn_bg_color)
-        val btnAccent = view.findViewById<Button>(R.id.btn_accent_color)
-        val btnNeedle = view.findViewById<Button>(R.id.btn_needle_color)
+        val seekRotation   = view.findViewById<SeekBar>(R.id.seekbar_rotation)
+        val textRotation   = view.findViewById<TextView>(R.id.text_rotation_value)
+        val switchFlip     = view.findViewById<Switch>(R.id.switch_flip_sweep)
+        val seekSize       = view.findViewById<SeekBar>(R.id.seekbar_size)
+        val textSizeValue  = view.findViewById<TextView>(R.id.text_size_value)
+
+        val shapeSelector    = view.findViewById<RadioGroup>(R.id.gauge_shape_selector)
+        val needleSelector   = view.findViewById<RadioGroup>(R.id.needle_style_selector)
+        val bgStyleSelector  = view.findViewById<RadioGroup>(R.id.bg_style_selector)
+
+        val btnBg      = view.findViewById<Button>(R.id.btn_bg_color)
+        val btnAccent  = view.findViewById<Button>(R.id.btn_accent_color)
+        val btnNeedle  = view.findViewById<Button>(R.id.btn_needle_color)
         val btnRedline = view.findViewById<Button>(R.id.btn_redline_color)
-        val shapeSelector = view.findViewById<RadioGroup>(R.id.gauge_shape_selector)
-        val presetRow = view.findViewById<LinearLayout>(R.id.preset_row)
+        val presetRow  = view.findViewById<LinearLayout>(R.id.preset_row)
 
-        // Build preset swatches
         buildPresetRow(presetRow)
 
-        // Gauge selector
+        fun loadGaugeSettings(index: Int) {
+            lifecycleScope.launch {
+                val prefs = requireContext().dataStore.data.first()
+                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
+                val display = prefs.getScreens(screenIndex).getGauges(index)
+
+                val rotDeg = display.gaugeRotation.roundToInt()
+                seekRotation.progress = rotDeg
+                textRotation.text = "${rotDeg}°"
+                switchFlip.isChecked = display.reverseSweep
+
+                val sizeProgress = if (display.gaugeSize == 0f) 50
+                    else ((display.gaugeSize - 0.5f) * 100f).toInt().coerceIn(0, 100)
+                seekSize.progress = sizeProgress
+                val scalePct = (0.5f + sizeProgress / 100f) * 100f
+                textSizeValue.text = "${scalePct.toInt()}%"
+
+                when (display.gaugeStyle) {
+                    2    -> view.findViewById<RadioButton>(R.id.shape_bar_h).isChecked = true
+                    3    -> view.findViewById<RadioButton>(R.id.shape_bar_v).isChecked = true
+                    else -> view.findViewById<RadioButton>(R.id.shape_circular).isChecked = true
+                }
+
+                when (display.needleStyle) {
+                    1    -> view.findViewById<RadioButton>(R.id.needle_line).isChecked = true
+                    2    -> view.findViewById<RadioButton>(R.id.needle_triangle).isChecked = true
+                    else -> view.findViewById<RadioButton>(R.id.needle_dot).isChecked = true
+                }
+
+                when (display.backgroundStyle) {
+                    1    -> view.findViewById<RadioButton>(R.id.bg_none).isChecked = true
+                    2    -> view.findViewById<RadioButton>(R.id.bg_filled).isChecked = true
+                    else -> view.findViewById<RadioButton>(R.id.bg_arc).isChecked = true
+                }
+
+                currentBgColor     = if (display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
+                currentAccentColor = if (display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
+                currentNeedleColor = if (display.customNeedleColor != 0) display.customNeedleColor else prefs.customNeedleColor
+                currentRedlineColor= if (display.customRedlineColor!= 0) display.customRedlineColor else prefs.customRedlineColor
+
+                btnBg.setBackgroundColor(currentBgColor)
+                btnAccent.setBackgroundColor(currentAccentColor)
+                btnNeedle.setBackgroundColor(currentNeedleColor)
+                btnRedline.setBackgroundColor(currentRedlineColor)
+            }
+        }
+
         fun selectGauge(index: Int) {
             selectedGauge = index
             listOf(btnG1, btnG2, btnG3).forEachIndexed { i, btn ->
                 btn.alpha = if (i == index) 1f else 0.5f
             }
-            // Load per-gauge settings for selected gauge
-            lifecycleScope.launch {
-                val prefs = requireContext().dataStore.data.first()
-                val screenIndex = prefs.currentScreen.let { abs(it) % prefs.screensCount }
-                val display = prefs.getScreens(screenIndex).getGauges(index)
-                val rotDeg = display.gaugeRotation.roundToInt()
-                seekRotation.progress = rotDeg
-                textRotation.text = "${rotDeg}°"
-                switchFlip.isChecked = display.reverseSweep
-            }
-            // Attach drag listener for this gauge
+            loadGaugeSettings(index)
             attachDragListenerToGauge(index)
         }
 
         btnG1.setOnClickListener { selectGauge(0) }
         btnG2.setOnClickListener { selectGauge(1) }
         btnG3.setOnClickListener { selectGauge(2) }
-
-        // Default to G1 selected
         selectGauge(0)
 
         // Rotation seekbar — snap to nearest 45° on stop
@@ -159,72 +203,76 @@ class DashboardPreviewFragment : Fragment() {
             saveGaugeField(selectedGauge) { it.setReverseSweep(checked) }
         }
 
-        // Shape selector
-        lifecycleScope.launch {
-            val currentShape = requireContext().dataStore.data.first().gaugeShape
-            when (currentShape) {
-                1 -> view.findViewById<RadioButton>(R.id.shape_bar_h).isChecked = true
-                2 -> view.findViewById<RadioButton>(R.id.shape_bar_v).isChecked = true
-                else -> view.findViewById<RadioButton>(R.id.shape_circular).isChecked = true
+        // Size seekbar (0–100 → 50%–150%)
+        seekSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+                val scalePct = ((0.5f + progress / 100f) * 100f).toInt()
+                textSizeValue.text = "${scalePct}%"
             }
-        }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                val scale = 0.5f + sb.progress / 100f
+                saveGaugeField(selectedGauge) { it.setGaugeSize(scale) }
+            }
+        })
+
+        // Gauge shape — per-gauge
         shapeSelector.setOnCheckedChangeListener { _, checkedId ->
-            val shape = when (checkedId) {
-                R.id.shape_bar_h -> 1
-                R.id.shape_bar_v -> 2
-                else -> 0
+            val style = when (checkedId) {
+                R.id.shape_bar_h -> 2
+                R.id.shape_bar_v -> 3
+                else             -> 1
             }
-            lifecycleScope.launch {
-                requireContext().dataStore.updateData {
-                    it.toBuilder().setGaugeShape(shape).build()
-                }
-            }
+            saveGaugeField(selectedGauge) { it.setGaugeStyle(style) }
         }
 
-        // Color pickers
-        lifecycleScope.launch {
-            requireContext().dataStore.data.collect { prefs ->
-                btnBg.setBackgroundColor(prefs.customBackgroundColor)
-                btnAccent.setBackgroundColor(prefs.customAccentColor)
-                btnNeedle.setBackgroundColor(prefs.customNeedleColor)
-                btnRedline.setBackgroundColor(prefs.customRedlineColor)
+        // Needle style
+        needleSelector.setOnCheckedChangeListener { _, checkedId ->
+            val style = when (checkedId) {
+                R.id.needle_line     -> 1
+                R.id.needle_triangle -> 2
+                else                 -> 0
+            }
+            saveGaugeField(selectedGauge) { it.setNeedleStyle(style) }
+        }
 
-                btnBg.setOnClickListener {
-                    pickColor("Background Color", prefs.customBackgroundColor) { color ->
-                        lifecycleScope.launch {
-                            requireContext().dataStore.updateData {
-                                it.toBuilder().setCustomBackgroundColor(color).build()
-                            }
-                        }
-                    }
-                }
-                btnAccent.setOnClickListener {
-                    pickColor("Accent Color", prefs.customAccentColor) { color ->
-                        lifecycleScope.launch {
-                            requireContext().dataStore.updateData {
-                                it.toBuilder().setCustomAccentColor(color).build()
-                            }
-                        }
-                    }
-                }
-                btnNeedle.setOnClickListener {
-                    pickColor("Needle Color", prefs.customNeedleColor) { color ->
-                        lifecycleScope.launch {
-                            requireContext().dataStore.updateData {
-                                it.toBuilder().setCustomNeedleColor(color).build()
-                            }
-                        }
-                    }
-                }
-                btnRedline.setOnClickListener {
-                    pickColor("Redline Color", prefs.customRedlineColor) { color ->
-                        lifecycleScope.launch {
-                            requireContext().dataStore.updateData {
-                                it.toBuilder().setCustomRedlineColor(color).build()
-                            }
-                        }
-                    }
-                }
+        // Background style
+        bgStyleSelector.setOnCheckedChangeListener { _, checkedId ->
+            val style = when (checkedId) {
+                R.id.bg_none   -> 1
+                R.id.bg_filled -> 2
+                else           -> 0
+            }
+            saveGaugeField(selectedGauge) { it.setBackgroundStyle(style) }
+        }
+
+        // Color pickers — per-gauge
+        btnBg.setOnClickListener {
+            pickColor("Background Color", currentBgColor) { color ->
+                currentBgColor = color
+                btnBg.setBackgroundColor(color)
+                saveGaugeField(selectedGauge) { it.setCustomBgColor(color) }
+            }
+        }
+        btnAccent.setOnClickListener {
+            pickColor("Accent Color", currentAccentColor) { color ->
+                currentAccentColor = color
+                btnAccent.setBackgroundColor(color)
+                saveGaugeField(selectedGauge) { it.setCustomAccentColor(color) }
+            }
+        }
+        btnNeedle.setOnClickListener {
+            pickColor("Needle Color", currentNeedleColor) { color ->
+                currentNeedleColor = color
+                btnNeedle.setBackgroundColor(color)
+                saveGaugeField(selectedGauge) { it.setCustomNeedleColor(color) }
+            }
+        }
+        btnRedline.setOnClickListener {
+            pickColor("Redline Color", currentRedlineColor) { color ->
+                currentRedlineColor = color
+                btnRedline.setBackgroundColor(color)
+                saveGaugeField(selectedGauge) { it.setCustomRedlineColor(color) }
             }
         }
     }
@@ -234,7 +282,6 @@ class DashboardPreviewFragment : Fragment() {
             ?: return
         val gaugeViews = dashFrag.gaugeViews
 
-        // Remove any existing touch listeners from all gauge views
         gaugeViews.forEach { gv -> gv?.setOnTouchListener(null) }
 
         val gv = gaugeViews[gaugeIndex] ?: return
@@ -263,7 +310,6 @@ class DashboardPreviewFragment : Fragment() {
                     val rootW = dashRoot.width.toFloat()
                     val rootH = dashRoot.height.toFloat()
                     if (rootW > 0 && rootH > 0) {
-                        // Compute gauge centre in dashboard-root coordinates
                         val rootLoc = IntArray(2)
                         dashRoot.getLocationOnScreen(rootLoc)
                         val gvLoc = IntArray(2)
@@ -278,8 +324,6 @@ class DashboardPreviewFragment : Fragment() {
                         val snappedFracX = snapXFractions.minByOrNull { abs(it - fracX) }!!
                         val snappedFracY = snapYFractions.minByOrNull { abs(it - fracY) }!!
 
-                        // Delta approach: centerX/Y are already in rootView coords so the
-                        // difference translates directly to a translationX/Y delta.
                         v.translationX += snappedFracX * rootW - centerX
                         v.translationY += snappedFracY * rootH - centerY
 
@@ -329,9 +373,7 @@ class DashboardPreviewFragment : Fragment() {
                     setColor(preset.bg)
                     setStroke((2 * dp).toInt(), preset.accent)
                 }
-                setOnClickListener {
-                    applyPreset(preset)
-                }
+                setOnClickListener { applyPreset(preset) }
             }
 
             val label = TextView(requireContext()).apply {
@@ -352,16 +394,20 @@ class DashboardPreviewFragment : Fragment() {
     }
 
     private fun applyPreset(preset: ColorPreset) {
-        lifecycleScope.launch {
-            requireContext().dataStore.updateData {
-                it.toBuilder()
-                    .setCustomBackgroundColor(preset.bg)
-                    .setCustomAccentColor(preset.accent)
-                    .setCustomNeedleColor(preset.needle)
-                    .setCustomRedlineColor(preset.redline)
-                    .build()
-            }
+        saveGaugeField(selectedGauge) {
+            it.setCustomBgColor(preset.bg)
+              .setCustomAccentColor(preset.accent)
+              .setCustomNeedleColor(preset.needle)
+              .setCustomRedlineColor(preset.redline)
         }
+        currentBgColor     = preset.bg
+        currentAccentColor = preset.accent
+        currentNeedleColor = preset.needle
+        currentRedlineColor= preset.redline
+        view?.findViewById<Button>(R.id.btn_bg_color)?.setBackgroundColor(preset.bg)
+        view?.findViewById<Button>(R.id.btn_accent_color)?.setBackgroundColor(preset.accent)
+        view?.findViewById<Button>(R.id.btn_needle_color)?.setBackgroundColor(preset.needle)
+        view?.findViewById<Button>(R.id.btn_redline_color)?.setBackgroundColor(preset.redline)
     }
 
     private fun pickColor(title: String, initialColor: Int, onColorSelected: (Int) -> Unit) {

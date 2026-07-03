@@ -148,6 +148,7 @@ open class DashboardFragment : AlbumArt() {
                             guages[index]?.setupClock(clock)
                         }
                         applyGaugePosition(index, display.gaugePosX, display.gaugePosY)
+                        applyGaugeSize(index, display.gaugeSize)
                     }
                 }
                 screens.displaysList.forEachIndexed { index, display ->
@@ -262,9 +263,9 @@ open class DashboardFragment : AlbumArt() {
         gaugeViews[1] = binding.gaugeCenter
         gaugeViews[2] = binding.gaugeRight
 
-        guages[0] = childFragmentManager.findFragmentById(R.id.gaugeLeft)!! as TorqueGauge
-        guages[1] = childFragmentManager.findFragmentById(R.id.gaugeCenter)!! as TorqueGauge
-        guages[2] = childFragmentManager.findFragmentById(R.id.gaugeRight)!! as TorqueGauge
+        guages[0] = (childFragmentManager.findFragmentById(R.id.gaugeLeft)!! as TorqueGauge).also { it.gaugeIndex = 0 }
+        guages[1] = (childFragmentManager.findFragmentById(R.id.gaugeCenter)!! as TorqueGauge).also { it.gaugeIndex = 1 }
+        guages[2] = (childFragmentManager.findFragmentById(R.id.gaugeRight)!! as TorqueGauge).also { it.gaugeIndex = 2 }
         displays[0] = childFragmentManager.findFragmentById(R.id.display1)!! as TorqueDisplay
         displays[1] = childFragmentManager.findFragmentById(R.id.display2)!! as TorqueDisplay
         displays[2] = childFragmentManager.findFragmentById(R.id.display3)!! as TorqueDisplay
@@ -301,6 +302,13 @@ open class DashboardFragment : AlbumArt() {
         return this.rootView
     }
 
+
+    fun applyGaugeSize(index: Int, size: Float) {
+        val gv = gaugeViews[index] ?: return
+        val scale = if (size == 0f) 1f else size.coerceIn(0.5f, 1.5f)
+        gv.scaleX = scale
+        gv.scaleY = scale
+    }
 
     fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
         val gv = gaugeViews[index] ?: return

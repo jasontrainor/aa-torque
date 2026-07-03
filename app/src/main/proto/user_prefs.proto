@@ -53,6 +53,14 @@ message Display {
   string customDialBackground = 30;
   float gaugePosX = 31;
   float gaugePosY = 32;
+  int32 customBgColor = 33;
+  int32 customAccentColor = 34;
+  int32 customNeedleColor = 35;
+  int32 customRedlineColor = 36;
+  int32 gaugeStyle = 37;
+  float gaugeSize = 38;
+  int32 needleStyle = 39;
+  int32 backgroundStyle = 40;
 }
 
 message Screen {

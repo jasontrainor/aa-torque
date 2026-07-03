@@ -153,16 +153,42 @@
 
             </LinearLayout>
 
-            <!-- Per-gauge: drag hint -->
+            <!-- Per-gauge: size -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Drag gauges in the preview above to reposition — they snap to a grid"
+                android:text="Gauge Size"
                 android:textColor="#AAAAAA"
-                android:textSize="11sp"
-                android:layout_marginBottom="12dp" />
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
 
-            <!-- Gauge Shape Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <SeekBar
+                    android:id="@+id/seekbar_size"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="100"
+                    android:progress="50" />
+
+                <TextView
+                    android:id="@+id/text_size_value"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:text="100%"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:gravity="end"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- Per-gauge: gauge style / shape -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -207,11 +233,112 @@
 
             </RadioGroup>
 
+            <!-- Per-gauge: needle style -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Needle Style"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginBottom="6dp" />
+
+            <RadioGroup
+                android:id="@+id/needle_style_selector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <RadioButton
+                    android:id="@+id/needle_dot"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Dot"
+                    android:checked="true"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
+                <RadioButton
+                    android:id="@+id/needle_line"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Line"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
+                <RadioButton
+                    android:id="@+id/needle_triangle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Triangle"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
+            </RadioGroup>
+
+            <!-- Per-gauge: background style -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Background Style"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginBottom="6dp" />
+
+            <RadioGroup
+                android:id="@+id/bg_style_selector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <RadioButton
+                    android:id="@+id/bg_arc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Arc"
+                    android:checked="true"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
+                <RadioButton
+                    android:id="@+id/bg_none"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="None"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
+                <RadioButton
+                    android:id="@+id/bg_filled"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Filled"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
+            </RadioGroup>
+
+            <!-- Per-gauge: drag hint -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Drag gauges in the preview above to reposition — they snap to a grid"
+                android:textColor="#AAAAAA"
+                android:textSize="11sp"
+                android:layout_marginBottom="12dp" />
+
             <!-- Color Presets Row -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Color Presets"
+                android:text="Color Presets (applies to selected gauge)"
                 android:textColor="#AAAAAA"
                 android:textSize="12sp"
                 android:layout_marginBottom="6dp" />

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
@@ -25,6 +26,10 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
     var redlineThreshold = 80f
     var isPreviewMode = false
 
+    var reverseSweep = false
+    var needleStyle = 0     // 0=dot, 1=line, 2=triangle
+    var backgroundStyle = 0 // 0=arc outline, 1=none, 2=filled circle
+
     var bgColor = Color.DKGRAY
     var accentColor = Color.CYAN
     var needleColor = Color.RED
@@ -35,6 +40,10 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
     }
 
+    private val bgFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
+
     private val accentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -42,6 +51,11 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
 
     private val needlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
+    }
+
+    private val needleLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
     }
 
     private val redlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -65,17 +79,22 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         accentColor = accent
         needleColor = needle
         redlineColor = redline
-        
+
         bgPaint.color = bgColor
+        bgFillPaint.color = Color.argb(
+            (Color.alpha(bgColor) * 0.3f).toInt(),
+            Color.red(bgColor), Color.green(bgColor), Color.blue(bgColor)
+        )
         accentPaint.color = accentColor
         needlePaint.color = needleColor
+        needleLinePaint.color = needleColor
         redlinePaint.color = redlineColor
-        
-        // Add glowing neon effects
+
         accentPaint.setShadowLayer(15f, 0f, 0f, accentColor)
         redlinePaint.setShadowLayer(15f, 0f, 0f, redlineColor)
         needlePaint.setShadowLayer(10f, 0f, 0f, needleColor)
-        
+        needleLinePaint.setShadowLayer(8f, 0f, 0f, needleColor)
+
         invalidate()
     }
 
@@ -85,14 +104,14 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         bgPaint.strokeWidth = strokeW
         accentPaint.strokeWidth = strokeW
         redlinePaint.strokeWidth = strokeW
-        
-        val padding = strokeW + 15f // shadow padding
+        needleLinePaint.strokeWidth = strokeW * 0.5f
+
+        val padding = strokeW + 15f
         rectF.set(padding, padding, w - padding, h - padding)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        
         when (shape) {
             GaugeShape.CIRCULAR -> drawCircular(canvas)
             GaugeShape.LINEAR_HORIZONTAL -> drawLinearHorizontal(canvas)
@@ -101,76 +120,161 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
     }
 
     private fun drawCircular(canvas: Canvas) {
-        val startAngle = 135f
-        val sweepAngle = 270f
-        
-        // Draw background arc
-        canvas.drawArc(rectF, startAngle, sweepAngle, false, bgPaint)
-        
+        val baseStart = 135f
+        val totalSweep = 270f
+
         val range = maxVal - minVal
         if (range <= 0) return
-        
+
         var valuePercentage = (currentVal - minVal) / range
-        if (isPreviewMode) {
-            valuePercentage = 0.65f // Show a representative value in preview
+        if (isPreviewMode) valuePercentage = 0.65f
+
+        val activeSweep = totalSweep * valuePercentage
+
+        // Background fill (style 2)
+        if (backgroundStyle == 2) {
+            canvas.drawOval(rectF, bgFillPaint)
         }
-        
+
+        // Background arc (style 0)
+        if (backgroundStyle != 1) {
+            if (reverseSweep) {
+                canvas.drawArc(rectF, baseStart + totalSweep, -totalSweep, false, bgPaint)
+            } else {
+                canvas.drawArc(rectF, baseStart, totalSweep, false, bgPaint)
+            }
+        }
+
         val redlinePercentage = (redlineThreshold - minVal) / range
-        
-        // Draw active segments
-        val activeSweep = sweepAngle * valuePercentage
-        
-        if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
-            val normalSweep = sweepAngle * redlinePercentage
-            val redlineSweep = sweepAngle * (valuePercentage - redlinePercentage)
-            
-            canvas.drawArc(rectF, startAngle, normalSweep, false, accentPaint)
-            canvas.drawArc(rectF, startAngle + normalSweep, redlineSweep, false, redlinePaint)
+
+        if (reverseSweep) {
+            val arcStart = baseStart + totalSweep
+            if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
+                val redlineSweep = totalSweep * (valuePercentage - redlinePercentage)
+                canvas.drawArc(rectF, arcStart, -redlineSweep, false, redlinePaint)
+                canvas.drawArc(rectF, arcStart - redlineSweep, -(activeSweep - redlineSweep), false, accentPaint)
+            } else {
+                val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
+                canvas.drawArc(rectF, arcStart, -sweep, false, accentPaint)
+            }
         } else {
-            // Even if activeSweep is 0, let's draw a tiny dot so the accent color is visible if not preview mode
-            val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
-            canvas.drawArc(rectF, startAngle, sweep, false, accentPaint)
+            if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
+                val normalSweep = totalSweep * redlinePercentage
+                val redlineSweep = totalSweep * (valuePercentage - redlinePercentage)
+                canvas.drawArc(rectF, baseStart, normalSweep, false, accentPaint)
+                canvas.drawArc(rectF, baseStart + normalSweep, redlineSweep, false, redlinePaint)
+            } else {
+                val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
+                canvas.drawArc(rectF, baseStart, sweep, false, accentPaint)
+            }
         }
-        
-        // Draw needle indicator
-        val angle = Math.toRadians((startAngle + activeSweep).toDouble())
+
+        // Needle position
+        val needleAngleDeg = if (reverseSweep) baseStart + totalSweep - activeSweep else baseStart + activeSweep
+        val angle = Math.toRadians(needleAngleDeg.toDouble())
         val cx = width / 2f
         val cy = height / 2f
         val radius = rectF.width() / 2f - bgPaint.strokeWidth
-        
+
         val nx = cx + cos(angle).toFloat() * radius
         val ny = cy + sin(angle).toFloat() * radius
-        
-        canvas.drawCircle(nx, ny, bgPaint.strokeWidth * 0.6f, needlePaint)
+
+        when (needleStyle) {
+            1 -> { // line from center
+                needleLinePaint.style = Paint.Style.STROKE
+                canvas.drawLine(cx, cy, nx, ny, needleLinePaint)
+            }
+            2 -> { // triangle pointer
+                val tipX = cx + cos(angle).toFloat() * (radius + bgPaint.strokeWidth * 0.5f)
+                val tipY = cy + sin(angle).toFloat() * (radius + bgPaint.strokeWidth * 0.5f)
+                val perpAngle = angle + Math.PI / 2
+                val baseHalf = bgPaint.strokeWidth * 0.5f
+                val b1x = nx + cos(perpAngle).toFloat() * baseHalf
+                val b1y = ny + sin(perpAngle).toFloat() * baseHalf
+                val b2x = nx - cos(perpAngle).toFloat() * baseHalf
+                val b2y = ny - sin(perpAngle).toFloat() * baseHalf
+                val path = Path()
+                path.moveTo(tipX, tipY)
+                path.lineTo(b1x, b1y)
+                path.lineTo(b2x, b2y)
+                path.close()
+                canvas.drawPath(path, needlePaint)
+            }
+            else -> { // dot (default)
+                canvas.drawCircle(nx, ny, bgPaint.strokeWidth * 0.6f, needlePaint)
+            }
+        }
     }
 
     private fun drawLinearHorizontal(canvas: Canvas) {
         val w = width.toFloat() - 30f
         val cy = height / 2f
-        
-        canvas.drawLine(15f, cy, w + 15f, cy, bgPaint)
-        
+
+        if (backgroundStyle == 2) {
+            bgFillPaint.style = Paint.Style.FILL
+            canvas.drawRect(15f, cy - bgPaint.strokeWidth, w + 15f, cy + bgPaint.strokeWidth, bgFillPaint)
+        }
+        if (backgroundStyle != 1) {
+            canvas.drawLine(15f, cy, w + 15f, cy, bgPaint)
+        }
+
         val range = maxVal - minVal
         if (range <= 0) return
         var valuePercentage = (currentVal - minVal) / range
         if (isPreviewMode) valuePercentage = 0.65f
-        
-        canvas.drawLine(15f, cy, 15f + w * valuePercentage, cy, accentPaint)
-        canvas.drawCircle(15f + w * valuePercentage, cy, bgPaint.strokeWidth * 0.8f, needlePaint)
+
+        val endX = if (reverseSweep) w + 15f - w * valuePercentage else 15f + w * valuePercentage
+        val startX = if (reverseSweep) w + 15f else 15f
+        canvas.drawLine(startX, cy, endX, cy, accentPaint)
+
+        when (needleStyle) {
+            1 -> canvas.drawLine(endX, cy - bgPaint.strokeWidth, endX, cy + bgPaint.strokeWidth, needleLinePaint)
+            2 -> {
+                val path = Path()
+                val dir = if (reverseSweep) -1f else 1f
+                path.moveTo(endX + dir * bgPaint.strokeWidth * 0.8f, cy)
+                path.lineTo(endX - dir * bgPaint.strokeWidth * 0.3f, cy - bgPaint.strokeWidth * 0.6f)
+                path.lineTo(endX - dir * bgPaint.strokeWidth * 0.3f, cy + bgPaint.strokeWidth * 0.6f)
+                path.close()
+                canvas.drawPath(path, needlePaint)
+            }
+            else -> canvas.drawCircle(endX, cy, bgPaint.strokeWidth * 0.8f, needlePaint)
+        }
     }
 
     private fun drawLinearVertical(canvas: Canvas) {
         val h = height.toFloat() - 30f
         val cx = width / 2f
-        
-        canvas.drawLine(cx, h + 15f, cx, 15f, bgPaint)
-        
+
+        if (backgroundStyle == 2) {
+            bgFillPaint.style = Paint.Style.FILL
+            canvas.drawRect(cx - bgPaint.strokeWidth, 15f, cx + bgPaint.strokeWidth, h + 15f, bgFillPaint)
+        }
+        if (backgroundStyle != 1) {
+            canvas.drawLine(cx, h + 15f, cx, 15f, bgPaint)
+        }
+
         val range = maxVal - minVal
         if (range <= 0) return
         var valuePercentage = (currentVal - minVal) / range
         if (isPreviewMode) valuePercentage = 0.65f
-        
-        canvas.drawLine(cx, h + 15f, cx, h + 15f - (h * valuePercentage), accentPaint)
-        canvas.drawCircle(cx, h + 15f - (h * valuePercentage), bgPaint.strokeWidth * 0.8f, needlePaint)
+
+        val endY = if (reverseSweep) 15f + h * (1f - valuePercentage) else h + 15f - h * valuePercentage
+        val startY = if (reverseSweep) 15f else h + 15f
+        canvas.drawLine(cx, startY, cx, endY, accentPaint)
+
+        when (needleStyle) {
+            1 -> canvas.drawLine(cx - bgPaint.strokeWidth, endY, cx + bgPaint.strokeWidth, endY, needleLinePaint)
+            2 -> {
+                val path = Path()
+                val dir = if (reverseSweep) 1f else -1f
+                path.moveTo(cx, endY + dir * bgPaint.strokeWidth * 0.8f)
+                path.lineTo(cx - bgPaint.strokeWidth * 0.6f, endY - dir * bgPaint.strokeWidth * 0.3f)
+                path.lineTo(cx + bgPaint.strokeWidth * 0.6f, endY - dir * bgPaint.strokeWidth * 0.3f)
+                path.close()
+                canvas.drawPath(path, needlePaint)
+            }
+            else -> canvas.drawCircle(cx, endY, bgPaint.strokeWidth * 0.8f, needlePaint)
+        }
     }
 }

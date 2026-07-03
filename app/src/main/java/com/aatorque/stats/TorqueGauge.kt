@@ -29,11 +29,14 @@ import com.github.anastr.speedviewlib.components.indicators.TriangleIndicator
 import com.github.anastr.speedviewlib.components.indicators.SpindleIndicator
 import timber.log.Timber
 import java.util.Locale
+import kotlin.math.abs
 
 
 const val NUM_TICKS = 9
 val MIN_MAX_DEFAULT = Pair(0f, 100f)
 class TorqueGauge : Fragment() {
+
+    var gaugeIndex = -1
 
     private var rootView: View? = null
     private val mClock: TorqueSpeedometer
@@ -148,12 +151,24 @@ class TorqueGauge : Fragment() {
                     mClock.visibility = View.INVISIBLE
                     mRayClock.visibility = View.INVISIBLE
                     mMax.visibility = View.INVISIBLE
-                    mModernGauge.setColors(
-                        prefs.customBackgroundColor,
-                        prefs.customAccentColor,
-                        prefs.customNeedleColor,
-                        prefs.customRedlineColor
-                    )
+
+                    val display = if (gaugeIndex >= 0 && prefs.screensCount > 0) {
+                        val si = abs(prefs.currentScreen) % prefs.screensCount
+                        val screen = prefs.getScreens(si)
+                        if (screen.gaugesCount > gaugeIndex) screen.getGauges(gaugeIndex) else null
+                    } else null
+
+                    val bg     = if (display != null && display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
+                    val accent = if (display != null && display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
+                    val needle = if (display != null && display.customNeedleColor != 0) display.customNeedleColor else prefs.customNeedleColor
+                    val red    = if (display != null && display.customRedlineColor!= 0) display.customRedlineColor else prefs.customRedlineColor
+                    mModernGauge.setColors(bg, accent, needle, red)
+
+                    if (display != null && display.gaugeStyle > 0) {
+                        mModernGauge.shape = GaugeShape.values().getOrElse(display.gaugeStyle - 1) { GaugeShape.CIRCULAR }
+                    }
+
+                    if (display != null) applyVisuals(display)
                 } else {
                     mModernGauge.visibility = View.GONE
                     mClock.visibility = View.VISIBLE
@@ -178,6 +193,10 @@ class TorqueGauge : Fragment() {
         mClock.reverseDirection = isReversed
         mRayClock.reverseDirection = isReversed
         mMax.reverseDirection = isReversed
+
+        mModernGauge.reverseSweep = isReversed
+        mModernGauge.needleStyle = display.needleStyle
+        mModernGauge.backgroundStyle = display.backgroundStyle
 
         if (display.customNeedle.isNotEmpty()) {
             val resId = resources.getIdentifier(display.customNeedle, "drawable", requireContext().packageName)
