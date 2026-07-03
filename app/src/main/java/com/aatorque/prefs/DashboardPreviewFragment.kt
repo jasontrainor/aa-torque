@@ -42,8 +42,8 @@ class DashboardPreviewFragment : Fragment() {
 
     private var selectedGauge = 0
 
-    // Snap grid: 6 columns × 3 rows
-    private val snapXFractions = floatArrayOf(1f/12, 3f/12, 5f/12, 7f/12, 9f/12, 11f/12)
+    // Snap grid: 7 columns × 3 rows (includes 6/12 = 0.5 center)
+    private val snapXFractions = floatArrayOf(1f/12, 3f/12, 5f/12, 6f/12, 7f/12, 9f/12, 11f/12)
     private val snapYFractions = floatArrayOf(1f/6, 3f/6, 5f/6)
 
     companion object {
@@ -278,10 +278,10 @@ class DashboardPreviewFragment : Fragment() {
                         val snappedFracX = snapXFractions.minByOrNull { abs(it - fracX) }!!
                         val snappedFracY = snapYFractions.minByOrNull { abs(it - fracY) }!!
 
-                        val defaultCenterX = v.left + v.width / 2f
-                        val defaultCenterY = v.top + v.height / 2f
-                        v.translationX = snappedFracX * rootW - defaultCenterX
-                        v.translationY = snappedFracY * rootH - defaultCenterY
+                        // Delta approach: centerX/Y are already in rootView coords so the
+                        // difference translates directly to a translationX/Y delta.
+                        v.translationX += snappedFracX * rootW - centerX
+                        v.translationY += snappedFracY * rootH - centerY
 
                         saveGaugeField(gaugeIndex) {
                             it.setGaugePosX(snappedFracX).setGaugePosY(snappedFracY)

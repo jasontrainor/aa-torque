@@ -305,20 +305,15 @@ open class DashboardFragment : AlbumArt() {
     fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
         val gv = gaugeViews[index] ?: return
         gv.post {
-            if (posX >= 0f) {
-                val defaultCenterX = gv.left + gv.width / 2f
-                val targetCenterX = rootView.width * posX
-                gv.translationX = targetCenterX - defaultCenterX
-            } else {
-                gv.translationX = 0f
-            }
-            if (posY >= 0f) {
-                val defaultCenterY = gv.top + gv.height / 2f
-                val targetCenterY = rootView.height * posY
-                gv.translationY = targetCenterY - defaultCenterY
-            } else {
-                gv.translationY = 0f
-            }
+            val rootLoc = IntArray(2)
+            rootView.getLocationOnScreen(rootLoc)
+            val gvLoc = IntArray(2)
+            gv.getLocationOnScreen(gvLoc)
+            // Center of gauge at zero translation, in rootView screen-coordinates
+            val defaultCenterX = gvLoc[0] - rootLoc[0] - gv.translationX + gv.width / 2f
+            val defaultCenterY = gvLoc[1] - rootLoc[1] - gv.translationY + gv.height / 2f
+            gv.translationX = if (posX > 0f) rootView.width  * posX - defaultCenterX else 0f
+            gv.translationY = if (posY > 0f) rootView.height * posY - defaultCenterY else 0f
         }
     }
 
