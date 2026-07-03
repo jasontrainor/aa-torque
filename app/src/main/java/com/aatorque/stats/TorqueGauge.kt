@@ -167,6 +167,7 @@ class TorqueGauge : Fragment() {
                     if (display != null && display.gaugeStyle > 0) {
                         mModernGauge.shape = GaugeShape.values().getOrElse(display.gaugeStyle - 1) { GaugeShape.CIRCULAR }
                     }
+                    mModernGauge.invalidate()
 
                     if (display != null) applyVisuals(display)
                 } else {

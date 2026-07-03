@@ -270,6 +270,7 @@
                 android:id="@+id/dashContent"
                 android:layout_width="match_parent"
                 android:layout_height="@{showChart ? LayoutParams.MATCH_PARENT : LayoutParams.WRAP_CONTENT, default=wrap_content}"
+                android:clipChildren="false"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

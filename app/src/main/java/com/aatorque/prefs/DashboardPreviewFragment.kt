@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -41,10 +42,6 @@ class DashboardPreviewFragment : Fragment() {
     val handler = Handler(Looper.getMainLooper())
 
     private var selectedGauge = 0
-
-    // Snap grid: 7 columns × 3 rows (includes 6/12 = 0.5 center)
-    private val snapXFractions = floatArrayOf(1f/12, 3f/12, 5f/12, 6f/12, 7f/12, 9f/12, 11f/12)
-    private val snapYFractions = floatArrayOf(1f/6, 3f/6, 5f/6)
 
     // Hold references so color button clicks can read current values
     private var currentBgColor = 0
@@ -104,6 +101,8 @@ class DashboardPreviewFragment : Fragment() {
         val btnG1 = view.findViewById<Button>(R.id.btn_gauge_1)
         val btnG2 = view.findViewById<Button>(R.id.btn_gauge_2)
         val btnG3 = view.findViewById<Button>(R.id.btn_gauge_3)
+        val btnAdd = view.findViewById<Button>(R.id.btn_add_gauge)
+        val btnRemove = view.findViewById<Button>(R.id.btn_remove_gauge)
 
         val seekRotation   = view.findViewById<SeekBar>(R.id.seekbar_rotation)
         val textRotation   = view.findViewById<TextView>(R.id.text_rotation_value)
@@ -114,14 +113,53 @@ class DashboardPreviewFragment : Fragment() {
         val shapeSelector    = view.findViewById<RadioGroup>(R.id.gauge_shape_selector)
         val needleSelector   = view.findViewById<RadioGroup>(R.id.needle_style_selector)
         val bgStyleSelector  = view.findViewById<RadioGroup>(R.id.bg_style_selector)
+        val labelNeedle      = view.findViewById<TextView>(R.id.label_needle_style)
+        val labelBgStyle     = view.findViewById<TextView>(R.id.label_bg_style)
+        val labelNeedleImage = view.findViewById<TextView>(R.id.label_needle_image)
+        val labelDialBgImage = view.findViewById<TextView>(R.id.label_dial_bg_image)
 
-        val btnBg      = view.findViewById<Button>(R.id.btn_bg_color)
-        val btnAccent  = view.findViewById<Button>(R.id.btn_accent_color)
-        val btnNeedle  = view.findViewById<Button>(R.id.btn_needle_color)
-        val btnRedline = view.findViewById<Button>(R.id.btn_redline_color)
-        val presetRow  = view.findViewById<LinearLayout>(R.id.preset_row)
+        val btnBg          = view.findViewById<Button>(R.id.btn_bg_color)
+        val btnAccent      = view.findViewById<Button>(R.id.btn_accent_color)
+        val btnNeedle      = view.findViewById<Button>(R.id.btn_needle_color)
+        val btnRedline     = view.findViewById<Button>(R.id.btn_redline_color)
+        val btnNeedleImg   = view.findViewById<Button>(R.id.btn_needle_image)
+        val btnDialBgImg   = view.findViewById<Button>(R.id.btn_dial_bg_image)
+        val presetRow      = view.findViewById<LinearLayout>(R.id.preset_row)
 
         buildPresetRow(presetRow)
+
+        val gaugeButtons = listOf(btnG1, btnG2, btnG3)
+
+        fun isTextStyle(gaugeStyle: Int) = gaugeStyle == 4
+
+        fun updateStyleVisibility(gaugeStyle: Int) {
+            val isText = isTextStyle(gaugeStyle)
+            val needleVis = if (isText) View.GONE else View.VISIBLE
+            labelNeedle.visibility = needleVis
+            needleSelector.visibility = needleVis
+            labelBgStyle.visibility = needleVis
+            bgStyleSelector.visibility = needleVis
+            labelNeedleImage.visibility = needleVis
+            btnNeedleImg.visibility = needleVis
+            labelDialBgImage.visibility = needleVis
+            btnDialBgImg.visibility = needleVis
+        }
+
+        fun refreshGaugeButtons() {
+            lifecycleScope.launch {
+                val prefs = requireContext().dataStore.data.first()
+                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(screenIndex)
+                gaugeButtons.forEachIndexed { i, btn ->
+                    val disabled = if (i < screen.gaugesCount) screen.getGauges(i).disabled else true
+                    btn.alpha = when {
+                        i == selectedGauge -> 1f
+                        disabled -> 0.3f
+                        else -> 0.6f
+                    }
+                }
+            }
+        }
 
         fun loadGaugeSettings(index: Int) {
             lifecycleScope.launch {
@@ -143,6 +181,7 @@ class DashboardPreviewFragment : Fragment() {
                 when (display.gaugeStyle) {
                     2    -> view.findViewById<RadioButton>(R.id.shape_bar_h).isChecked = true
                     3    -> view.findViewById<RadioButton>(R.id.shape_bar_v).isChecked = true
+                    4    -> view.findViewById<RadioButton>(R.id.shape_text).isChecked = true
                     else -> view.findViewById<RadioButton>(R.id.shape_circular).isChecked = true
                 }
 
@@ -158,6 +197,13 @@ class DashboardPreviewFragment : Fragment() {
                     else -> view.findViewById<RadioButton>(R.id.bg_arc).isChecked = true
                 }
 
+                updateStyleVisibility(display.gaugeStyle)
+
+                val needleName = display.customNeedle
+                btnNeedleImg.text = if (needleName.isNotEmpty()) needleName else "Select Needle"
+                val bgName = display.customDialBackground
+                btnDialBgImg.text = if (bgName.isNotEmpty()) bgName else "Select Dial Background"
+
                 currentBgColor     = if (display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
                 currentAccentColor = if (display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
                 currentNeedleColor = if (display.customNeedleColor != 0) display.customNeedleColor else prefs.customNeedleColor
@@ -172,16 +218,64 @@ class DashboardPreviewFragment : Fragment() {
 
         fun selectGauge(index: Int) {
             selectedGauge = index
-            listOf(btnG1, btnG2, btnG3).forEachIndexed { i, btn ->
+            gaugeButtons.forEachIndexed { i, btn ->
                 btn.alpha = if (i == index) 1f else 0.5f
             }
             loadGaugeSettings(index)
             attachDragListenerToGauge(index)
+            refreshGaugeButtons()
         }
 
         btnG1.setOnClickListener { selectGauge(0) }
         btnG2.setOnClickListener { selectGauge(1) }
         btnG3.setOnClickListener { selectGauge(2) }
+
+        btnAdd.setOnClickListener {
+            lifecycleScope.launch {
+                val prefs = requireContext().dataStore.data.first()
+                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(screenIndex)
+                val disabledIndex = (0 until screen.gaugesCount).firstOrNull { screen.getGauges(it).disabled }
+                if (disabledIndex != null) {
+                    GlobalScope.launch(Dispatchers.IO) {
+                        requireContext().dataStore.updateData { p ->
+                            val si = abs(p.currentScreen) % p.screensCount
+                            val s = p.getScreens(si)
+                            val d = s.getGauges(disabledIndex)
+                            val updated = d.toBuilder().setDisabled(false).build()
+                            val updatedScreen = s.toBuilder().setGauges(disabledIndex, updated).build()
+                            p.toBuilder().setScreens(si, updatedScreen).build()
+                        }
+                    }
+                    selectGauge(disabledIndex)
+                }
+            }
+        }
+
+        btnRemove.setOnClickListener {
+            lifecycleScope.launch {
+                val prefs = requireContext().dataStore.data.first()
+                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(screenIndex)
+                val enabledCount = (0 until screen.gaugesCount).count { !screen.getGauges(it).disabled }
+                if (enabledCount <= 1) return@launch  // keep at least one gauge
+                GlobalScope.launch(Dispatchers.IO) {
+                    requireContext().dataStore.updateData { p ->
+                        val si = abs(p.currentScreen) % p.screensCount
+                        val s = p.getScreens(si)
+                        val d = s.getGauges(selectedGauge)
+                        val updated = d.toBuilder().setDisabled(true).build()
+                        val updatedScreen = s.toBuilder().setGauges(selectedGauge, updated).build()
+                        p.toBuilder().setScreens(si, updatedScreen).build()
+                    }
+                }
+                val nextEnabled = (0 until screen.gaugesCount).firstOrNull {
+                    it != selectedGauge && !screen.getGauges(it).disabled
+                } ?: 0
+                selectGauge(nextEnabled)
+            }
+        }
+
         selectGauge(0)
 
         // Rotation seekbar — snap to nearest 45° on stop
@@ -221,8 +315,10 @@ class DashboardPreviewFragment : Fragment() {
             val style = when (checkedId) {
                 R.id.shape_bar_h -> 2
                 R.id.shape_bar_v -> 3
+                R.id.shape_text  -> 4
                 else             -> 1
             }
+            updateStyleVisibility(style)
             saveGaugeField(selectedGauge) { it.setGaugeStyle(style) }
         }
 
@@ -244,6 +340,32 @@ class DashboardPreviewFragment : Fragment() {
                 else           -> 0
             }
             saveGaugeField(selectedGauge) { it.setBackgroundStyle(style) }
+        }
+
+        // Needle image picker
+        btnNeedleImg.setOnClickListener {
+            pickImage(
+                "Select Needle",
+                R.array.needleImages,
+                R.array.needleEntries,
+                R.array.needleValues
+            ) { value, label ->
+                btnNeedleImg.text = label
+                saveGaugeField(selectedGauge) { it.setCustomNeedle(value) }
+            }
+        }
+
+        // Dial background image picker
+        btnDialBgImg.setOnClickListener {
+            pickImage(
+                "Select Dial Background",
+                R.array.dialBgImages,
+                R.array.dialBgEntries,
+                R.array.dialBgValues
+            ) { value, label ->
+                btnDialBgImg.text = label
+                saveGaugeField(selectedGauge) { it.setCustomDialBackground(value) }
+            }
         }
 
         // Color pickers — per-gauge
@@ -275,6 +397,69 @@ class DashboardPreviewFragment : Fragment() {
                 saveGaugeField(selectedGauge) { it.setCustomRedlineColor(color) }
             }
         }
+    }
+
+    private fun pickImage(
+        title: String,
+        imagesArrayRes: Int,
+        entriesArrayRes: Int,
+        valuesArrayRes: Int,
+        onPicked: (value: String, label: String) -> Unit
+    ) {
+        val context = requireContext()
+        val images = context.resources.obtainTypedArray(imagesArrayRes)
+        val entries = context.resources.getStringArray(entriesArrayRes)
+        val values = context.resources.getStringArray(valuesArrayRes)
+
+        val dp = context.resources.displayMetrics.density
+        val thumbSize = (56 * dp).toInt()
+        val padding = (8 * dp).toInt()
+
+        val scrollView = android.widget.ScrollView(context)
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padding, padding, padding, padding)
+        }
+        scrollView.addView(container)
+
+        entries.forEachIndexed { i, label ->
+            val row = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(padding, padding, padding, padding)
+            }
+            val thumb = ImageView(context).apply {
+                layoutParams = LinearLayout.LayoutParams(thumbSize, thumbSize).apply { marginEnd = padding }
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
+                try { setImageResource(images.getResourceId(i, 0)) } catch (_: Exception) {}
+            }
+            val lbl = TextView(context).apply {
+                text = label
+                setTextColor(Color.WHITE)
+                textSize = 14f
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+            }
+            row.addView(thumb)
+            row.addView(lbl)
+            container.addView(row)
+        }
+        images.recycle()
+
+        val dialog = AlertDialog.Builder(context)
+            .setTitle(title)
+            .setView(scrollView)
+            .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
+            .create()
+
+        entries.forEachIndexed { i, label ->
+            val row = container.getChildAt(i) as? LinearLayout
+            row?.setOnClickListener {
+                onPicked(values[i], label)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
     }
 
     private fun attachDragListenerToGauge(gaugeIndex: Int) {
@@ -321,14 +506,8 @@ class DashboardPreviewFragment : Fragment() {
                         val fracX = (centerX / rootW).coerceIn(0f, 1f)
                         val fracY = (centerY / rootH).coerceIn(0f, 1f)
 
-                        val snappedFracX = snapXFractions.minByOrNull { abs(it - fracX) }!!
-                        val snappedFracY = snapYFractions.minByOrNull { abs(it - fracY) }!!
-
-                        v.translationX += snappedFracX * rootW - centerX
-                        v.translationY += snappedFracY * rootH - centerY
-
                         saveGaugeField(gaugeIndex) {
-                            it.setGaugePosX(snappedFracX).setGaugePosY(snappedFracY)
+                            it.setGaugePosX(fracX).setGaugePosY(fracY)
                         }
                     }
                     true

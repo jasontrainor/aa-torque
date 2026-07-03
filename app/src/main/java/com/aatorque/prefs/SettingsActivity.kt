@@ -132,7 +132,7 @@ class SettingsActivity : AppCompatActivity(),
         // Handle item selection
         return when (item.itemId) {
             R.id.action_preview -> {
-                launchFragment("preview", DashboardPreviewFragment())
+                launchFragment("fullscreen_preview", FullscreenPreviewFragment())
                 true
             }
 

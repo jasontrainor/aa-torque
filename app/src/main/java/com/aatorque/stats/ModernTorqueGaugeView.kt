@@ -6,12 +6,14 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 
-enum class GaugeShape { CIRCULAR, LINEAR_HORIZONTAL, LINEAR_VERTICAL }
+enum class GaugeShape { CIRCULAR, LINEAR_HORIZONTAL, LINEAR_VERTICAL, TEXT }
 
 class ModernTorqueGaugeView @JvmOverloads constructor(
     context: Context,
@@ -63,6 +65,12 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
     }
 
+    private val textValuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.DEFAULT_BOLD
+    }
+
     private val rectF = RectF()
 
     init {
@@ -94,6 +102,8 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
         redlinePaint.setShadowLayer(15f, 0f, 0f, redlineColor)
         needlePaint.setShadowLayer(10f, 0f, 0f, needleColor)
         needleLinePaint.setShadowLayer(8f, 0f, 0f, needleColor)
+        textValuePaint.color = accentColor
+        textValuePaint.setShadowLayer(12f, 0f, 0f, accentColor)
 
         invalidate()
     }
@@ -116,7 +126,21 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
             GaugeShape.CIRCULAR -> drawCircular(canvas)
             GaugeShape.LINEAR_HORIZONTAL -> drawLinearHorizontal(canvas)
             GaugeShape.LINEAR_VERTICAL -> drawLinearVertical(canvas)
+            GaugeShape.TEXT -> drawText(canvas)
         }
+    }
+
+    private fun drawText(canvas: Canvas) {
+        val cx = width / 2f
+        val cy = height / 2f
+        val textSize = min(width, height) * 0.40f
+        textValuePaint.textSize = textSize
+        val valueStr = if (isPreviewMode) "65" else {
+            val v = currentVal
+            if (v == v.toLong().toFloat()) v.toLong().toString() else "%.1f".format(v)
+        }
+        val fm = textValuePaint.fontMetrics
+        canvas.drawText(valueStr, cx, cy - (fm.ascent + fm.descent) / 2f, textValuePaint)
     }
 
     private fun drawCircular(canvas: Canvas) {

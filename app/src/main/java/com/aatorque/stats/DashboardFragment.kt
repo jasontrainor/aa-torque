@@ -149,6 +149,7 @@ open class DashboardFragment : AlbumArt() {
                         }
                         applyGaugePosition(index, display.gaugePosX, display.gaugePosY)
                         applyGaugeSize(index, display.gaugeSize)
+                        applyGaugeEnabled(index, !display.disabled)
                     }
                 }
                 screens.displaysList.forEachIndexed { index, display ->
@@ -308,6 +309,15 @@ open class DashboardFragment : AlbumArt() {
         val scale = if (size == 0f) 1f else size.coerceIn(0.5f, 1.5f)
         gv.scaleX = scale
         gv.scaleY = scale
+        val inv = 1f / scale
+        guages[index]?.view?.findViewById<android.widget.TextView>(R.id.textTitle)?.let {
+            it.scaleX = inv
+            it.scaleY = inv
+        }
+    }
+
+    fun applyGaugeEnabled(index: Int, enabled: Boolean) {
+        gaugeViews[index]?.visibility = if (enabled) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
