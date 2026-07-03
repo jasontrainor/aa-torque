@@ -278,7 +278,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="6dp">
 
                 <RadioButton
                     android:id="@+id/needle_dot"
@@ -308,7 +308,33 @@
                     android:textColor="@android:color/white"
                     android:buttonTint="@android:color/white" />
 
+                <RadioButton
+                    android:id="@+id/needle_image"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Image"
+                    android:textColor="@android:color/white"
+                    android:buttonTint="@android:color/white" />
+
             </RadioGroup>
+
+            <!-- Needle and dial background image pickers — shown only when Image needle is selected -->
+            <Button
+                android:id="@+id/btn_needle_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Needle Image"
+                android:visibility="gone"
+                android:layout_marginBottom="4dp" />
+
+            <Button
+                android:id="@+id/btn_dial_bg_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Dial Background"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp" />
 
             <!-- Per-gauge: background style -->
             <TextView
@@ -356,40 +382,6 @@
                     android:buttonTint="@android:color/white" />
 
             </RadioGroup>
-
-            <!-- Per-gauge: needle image picker -->
-            <TextView
-                android:id="@+id/label_needle_image"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Needle Image"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:layout_marginBottom="4dp" />
-
-            <Button
-                android:id="@+id/btn_needle_image"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select Needle"
-                android:layout_marginBottom="12dp" />
-
-            <!-- Per-gauge: dial background image picker -->
-            <TextView
-                android:id="@+id/label_dial_bg_image"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dial Background Image"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:layout_marginBottom="4dp" />
-
-            <Button
-                android:id="@+id/btn_dial_bg_image"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select Dial Background"
-                android:layout_marginBottom="12dp" />
 
             <!-- Per-gauge: drag hint -->
             <TextView

@@ -115,8 +115,6 @@ class DashboardPreviewFragment : Fragment() {
         val bgStyleSelector  = view.findViewById<RadioGroup>(R.id.bg_style_selector)
         val labelNeedle      = view.findViewById<TextView>(R.id.label_needle_style)
         val labelBgStyle     = view.findViewById<TextView>(R.id.label_bg_style)
-        val labelNeedleImage = view.findViewById<TextView>(R.id.label_needle_image)
-        val labelDialBgImage = view.findViewById<TextView>(R.id.label_dial_bg_image)
 
         val btnBg          = view.findViewById<Button>(R.id.btn_bg_color)
         val btnAccent      = view.findViewById<Button>(R.id.btn_accent_color)
@@ -132,6 +130,13 @@ class DashboardPreviewFragment : Fragment() {
 
         fun isTextStyle(gaugeStyle: Int) = gaugeStyle == 4
 
+        fun updateNeedleImageVisibility(needleStyle: Int) {
+            val isImage = needleStyle == 3
+            val imgVis = if (isImage) View.VISIBLE else View.GONE
+            btnNeedleImg.visibility = imgVis
+            btnDialBgImg.visibility = imgVis
+        }
+
         fun updateStyleVisibility(gaugeStyle: Int) {
             val isText = isTextStyle(gaugeStyle)
             val needleVis = if (isText) View.GONE else View.VISIBLE
@@ -139,10 +144,10 @@ class DashboardPreviewFragment : Fragment() {
             needleSelector.visibility = needleVis
             labelBgStyle.visibility = needleVis
             bgStyleSelector.visibility = needleVis
-            labelNeedleImage.visibility = needleVis
-            btnNeedleImg.visibility = needleVis
-            labelDialBgImage.visibility = needleVis
-            btnDialBgImg.visibility = needleVis
+            if (isText) {
+                btnNeedleImg.visibility = View.GONE
+                btnDialBgImg.visibility = View.GONE
+            }
         }
 
         fun refreshGaugeButtons() {
@@ -188,6 +193,7 @@ class DashboardPreviewFragment : Fragment() {
                 when (display.needleStyle) {
                     1    -> view.findViewById<RadioButton>(R.id.needle_line).isChecked = true
                     2    -> view.findViewById<RadioButton>(R.id.needle_triangle).isChecked = true
+                    3    -> view.findViewById<RadioButton>(R.id.needle_image).isChecked = true
                     else -> view.findViewById<RadioButton>(R.id.needle_dot).isChecked = true
                 }
 
@@ -198,9 +204,10 @@ class DashboardPreviewFragment : Fragment() {
                 }
 
                 updateStyleVisibility(display.gaugeStyle)
+                updateNeedleImageVisibility(display.needleStyle)
 
                 val needleName = display.customNeedle
-                btnNeedleImg.text = if (needleName.isNotEmpty()) needleName else "Select Needle"
+                btnNeedleImg.text = if (needleName.isNotEmpty()) needleName else "Select Needle Image"
                 val bgName = display.customDialBackground
                 btnDialBgImg.text = if (bgName.isNotEmpty()) bgName else "Select Dial Background"
 
@@ -327,7 +334,16 @@ class DashboardPreviewFragment : Fragment() {
             val style = when (checkedId) {
                 R.id.needle_line     -> 1
                 R.id.needle_triangle -> 2
+                R.id.needle_image    -> 3
                 else                 -> 0
+            }
+            updateNeedleImageVisibility(style)
+            if (style == 3 && view.findViewById<Button>(R.id.btn_needle_image).text == "Select Needle Image") {
+                // Auto-open the picker when Image is first selected with no image chosen
+                pickImage("Select Needle Image", R.array.needleImages, R.array.needleEntries, R.array.needleValues) { value, label ->
+                    btnNeedleImg.text = label
+                    saveGaugeField(selectedGauge) { it.setCustomNeedle(value) }
+                }
             }
             saveGaugeField(selectedGauge) { it.setNeedleStyle(style) }
         }
@@ -342,27 +358,17 @@ class DashboardPreviewFragment : Fragment() {
             saveGaugeField(selectedGauge) { it.setBackgroundStyle(style) }
         }
 
-        // Needle image picker
+        // Needle image picker (visible only when needle_image is selected)
         btnNeedleImg.setOnClickListener {
-            pickImage(
-                "Select Needle",
-                R.array.needleImages,
-                R.array.needleEntries,
-                R.array.needleValues
-            ) { value, label ->
+            pickImage("Select Needle Image", R.array.needleImages, R.array.needleEntries, R.array.needleValues) { value, label ->
                 btnNeedleImg.text = label
                 saveGaugeField(selectedGauge) { it.setCustomNeedle(value) }
             }
         }
 
-        // Dial background image picker
+        // Dial background image picker (visible only when needle_image is selected)
         btnDialBgImg.setOnClickListener {
-            pickImage(
-                "Select Dial Background",
-                R.array.dialBgImages,
-                R.array.dialBgEntries,
-                R.array.dialBgValues
-            ) { value, label ->
+            pickImage("Select Dial Background", R.array.dialBgImages, R.array.dialBgEntries, R.array.dialBgValues) { value, label ->
                 btnDialBgImg.text = label
                 saveGaugeField(selectedGauge) { it.setCustomDialBackground(value) }
             }

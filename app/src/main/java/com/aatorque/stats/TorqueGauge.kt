@@ -145,18 +145,22 @@ class TorqueGauge : Fragment() {
         lifecycleScope.launchWhenStarted {
             requireContext().dataStore.data.collect { prefs ->
                 val isCustom = prefs.selectedTheme == "Custom"
-                if (isCustom) {
+
+                val display = if (gaugeIndex >= 0 && prefs.screensCount > 0) {
+                    val si = abs(prefs.currentScreen) % prefs.screensCount
+                    val screen = prefs.getScreens(si)
+                    if (screen.gaugesCount > gaugeIndex) screen.getGauges(gaugeIndex) else null
+                } else null
+
+                // needleStyle==3 means image needle — use mClock so the image drawable is visible
+                val useImageNeedle = display?.needleStyle == 3
+
+                if (isCustom && !useImageNeedle) {
                     mModernGauge.isPreviewMode = requireActivity() is com.aatorque.prefs.SettingsActivity
                     mModernGauge.visibility = View.VISIBLE
                     mClock.visibility = View.INVISIBLE
                     mRayClock.visibility = View.INVISIBLE
                     mMax.visibility = View.INVISIBLE
-
-                    val display = if (gaugeIndex >= 0 && prefs.screensCount > 0) {
-                        val si = abs(prefs.currentScreen) % prefs.screensCount
-                        val screen = prefs.getScreens(si)
-                        if (screen.gaugesCount > gaugeIndex) screen.getGauges(gaugeIndex) else null
-                    } else null
 
                     val bg     = if (display != null && display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
                     val accent = if (display != null && display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
@@ -175,6 +179,7 @@ class TorqueGauge : Fragment() {
                     mClock.visibility = View.VISIBLE
                     mMax.visibility = if (binding.showLimitMarked != MaxControl.OFF) View.VISIBLE else View.INVISIBLE
                     mRayClock.visibility = if (rayOn) View.VISIBLE else View.INVISIBLE
+                    if (display != null) applyVisuals(display)
                 }
             }
         }
