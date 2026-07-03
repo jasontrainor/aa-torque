@@ -152,10 +152,7 @@ class TorqueGauge : Fragment() {
                     if (screen.gaugesCount > gaugeIndex) screen.getGauges(gaugeIndex) else null
                 } else null
 
-                // needleStyle==3 means image needle — use mClock so the image drawable is visible
-                val useImageNeedle = display?.needleStyle == 3
-
-                if (isCustom && !useImageNeedle) {
+                if (isCustom) {
                     mModernGauge.isPreviewMode = requireActivity() is com.aatorque.prefs.SettingsActivity
                     mModernGauge.visibility = View.VISIBLE
                     mClock.visibility = View.INVISIBLE
@@ -204,6 +201,18 @@ class TorqueGauge : Fragment() {
         mModernGauge.needleStyle = display.needleStyle
         mModernGauge.backgroundStyle = display.backgroundStyle
 
+        // Image needle and dial background for mModernGauge (Custom theme)
+        mModernGauge.needleDrawable = if (display.needleStyle == 3 && display.customNeedle.isNotEmpty()) {
+            val resId = resources.getIdentifier(display.customNeedle, "drawable", requireContext().packageName)
+            if (resId != 0) requireContext().getDrawable(resId) else null
+        } else null
+
+        mModernGauge.dialBackground = if (display.customDialBackground.isNotEmpty()) {
+            val resId = resources.getIdentifier(display.customDialBackground, "drawable", requireContext().packageName)
+            if (resId != 0) requireContext().getDrawable(resId) else null
+        } else null
+
+        // Image needle and dial background for mClock (non-Custom theme)
         if (display.customNeedle.isNotEmpty()) {
             val resId = resources.getIdentifier(display.customNeedle, "drawable", requireContext().packageName)
             if (resId != 0) {

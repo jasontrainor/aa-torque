@@ -34,6 +34,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -155,14 +156,19 @@ class DashboardPreviewFragment : Fragment() {
                 val prefs = requireContext().dataStore.data.first()
                 val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
                 val screen = prefs.getScreens(screenIndex)
+                var enabledCount = 0
+                var disabledCount = 0
                 gaugeButtons.forEachIndexed { i, btn ->
                     val disabled = if (i < screen.gaugesCount) screen.getGauges(i).disabled else true
+                    if (disabled) disabledCount++ else enabledCount++
                     btn.alpha = when {
                         i == selectedGauge -> 1f
                         disabled -> 0.3f
                         else -> 0.6f
                     }
                 }
+                btnAdd.isEnabled = disabledCount > 0
+                btnRemove.isEnabled = enabledCount > 1
             }
         }
 
@@ -178,7 +184,7 @@ class DashboardPreviewFragment : Fragment() {
                 switchFlip.isChecked = display.reverseSweep
 
                 val sizeProgress = if (display.gaugeSize == 0f) 50
-                    else ((display.gaugeSize - 0.5f) * 100f).toInt().coerceIn(0, 100)
+                    else ((display.gaugeSize - 0.5f) * 100f).toInt().coerceIn(0, 150)
                 seekSize.progress = sizeProgress
                 val scalePct = (0.5f + sizeProgress / 100f) * 100f
                 textSizeValue.text = "${scalePct.toInt()}%"
@@ -244,7 +250,7 @@ class DashboardPreviewFragment : Fragment() {
                 val screen = prefs.getScreens(screenIndex)
                 val disabledIndex = (0 until screen.gaugesCount).firstOrNull { screen.getGauges(it).disabled }
                 if (disabledIndex != null) {
-                    GlobalScope.launch(Dispatchers.IO) {
+                    withContext(Dispatchers.IO) {
                         requireContext().dataStore.updateData { p ->
                             val si = abs(p.currentScreen) % p.screensCount
                             val s = p.getScreens(si)
@@ -266,7 +272,10 @@ class DashboardPreviewFragment : Fragment() {
                 val screen = prefs.getScreens(screenIndex)
                 val enabledCount = (0 until screen.gaugesCount).count { !screen.getGauges(it).disabled }
                 if (enabledCount <= 1) return@launch  // keep at least one gauge
-                GlobalScope.launch(Dispatchers.IO) {
+                val nextEnabled = (0 until screen.gaugesCount).firstOrNull {
+                    it != selectedGauge && !screen.getGauges(it).disabled
+                } ?: 0
+                withContext(Dispatchers.IO) {
                     requireContext().dataStore.updateData { p ->
                         val si = abs(p.currentScreen) % p.screensCount
                         val s = p.getScreens(si)
@@ -276,9 +285,6 @@ class DashboardPreviewFragment : Fragment() {
                         p.toBuilder().setScreens(si, updatedScreen).build()
                     }
                 }
-                val nextEnabled = (0 until screen.gaugesCount).firstOrNull {
-                    it != selectedGauge && !screen.getGauges(it).disabled
-                } ?: 0
                 selectGauge(nextEnabled)
             }
         }

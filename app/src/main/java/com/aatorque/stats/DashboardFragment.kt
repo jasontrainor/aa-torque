@@ -26,6 +26,7 @@ import android.widget.TextView
 import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.InputDeviceCompat
+import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -306,7 +307,7 @@ open class DashboardFragment : AlbumArt() {
 
     fun applyGaugeSize(index: Int, size: Float) {
         val gv = gaugeViews[index] ?: return
-        val scale = if (size == 0f) 1f else size.coerceIn(0.5f, 1.5f)
+        val scale = if (size == 0f) 1f else size.coerceIn(0.5f, 2.0f)
         gv.scaleX = scale
         gv.scaleY = scale
         val inv = 1f / scale
@@ -322,7 +323,7 @@ open class DashboardFragment : AlbumArt() {
 
     fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
         val gv = gaugeViews[index] ?: return
-        gv.post {
+        rootView.doOnLayout {
             val rootLoc = IntArray(2)
             rootView.getLocationOnScreen(rootLoc)
             val gvLoc = IntArray(2)

@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.cos
@@ -29,8 +30,11 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
     var isPreviewMode = false
 
     var reverseSweep = false
-    var needleStyle = 0     // 0=dot, 1=line, 2=triangle
+    var needleStyle = 0     // 0=dot, 1=line, 2=triangle, 3=image
     var backgroundStyle = 0 // 0=arc outline, 1=none, 2=filled circle
+
+    var needleDrawable: Drawable? = null
+    var dialBackground: Drawable? = null
 
     var bgColor = Color.DKGRAY
     var accentColor = Color.CYAN
@@ -155,6 +159,12 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
 
         val activeSweep = totalSweep * valuePercentage
 
+        // Dial background image (drawn behind everything)
+        dialBackground?.let { bg ->
+            bg.setBounds(0, 0, width, height)
+            bg.draw(canvas)
+        }
+
         // Background fill (style 2)
         if (backgroundStyle == 2) {
             canvas.drawOval(rectF, bgFillPaint)
@@ -223,6 +233,16 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
                 path.lineTo(b2x, b2y)
                 path.close()
                 canvas.drawPath(path, needlePaint)
+            }
+            3 -> { // image needle — rotate drawable to match arc position
+                needleDrawable?.let { drawable ->
+                    canvas.save()
+                    // +90f matches Speedometer.drawIndicator()'s rotate(90f + degree) convention
+                    canvas.rotate(needleAngleDeg + 90f, cx, cy)
+                    drawable.setBounds(0, 0, width, height)
+                    drawable.draw(canvas)
+                    canvas.restore()
+                }
             }
             else -> { // dot (default)
                 canvas.drawCircle(nx, ny, bgPaint.strokeWidth * 0.6f, needlePaint)
