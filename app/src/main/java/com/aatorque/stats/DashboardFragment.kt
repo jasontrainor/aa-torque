@@ -323,16 +323,19 @@ open class DashboardFragment : AlbumArt() {
 
     fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
         val gv = gaugeViews[index] ?: return
-        rootView.doOnLayout {
-            val rootLoc = IntArray(2)
-            rootView.getLocationOnScreen(rootLoc)
-            val gvLoc = IntArray(2)
-            gv.getLocationOnScreen(gvLoc)
-            // Center of gauge at zero translation, in rootView screen-coordinates
-            val defaultCenterX = gvLoc[0] - rootLoc[0] - gv.translationX + gv.width / 2f
-            val defaultCenterY = gvLoc[1] - rootLoc[1] - gv.translationY + gv.height / 2f
-            gv.translationX = if (posX > 0f) rootView.width  * posX - defaultCenterX else 0f
-            gv.translationY = if (posY > 0f) rootView.height * posY - defaultCenterY else 0f
+        gv.doOnLayout {
+            // Post to run after the full layout pass (performTraversals) completes,
+            // so getLocationOnScreen reflects final constrained positions.
+            gv.post {
+                val rootLoc = IntArray(2)
+                rootView.getLocationOnScreen(rootLoc)
+                val gvLoc = IntArray(2)
+                gv.getLocationOnScreen(gvLoc)
+                val defaultCenterX = gvLoc[0] - rootLoc[0] - gv.translationX + gv.width / 2f
+                val defaultCenterY = gvLoc[1] - rootLoc[1] - gv.translationY + gv.height / 2f
+                gv.translationX = if (posX > 0f) rootView.width  * posX - defaultCenterX else 0f
+                gv.translationY = if (posY > 0f) rootView.height * posY - defaultCenterY else 0f
+            }
         }
     }
 
