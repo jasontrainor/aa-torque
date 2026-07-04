@@ -181,25 +181,28 @@ class ModernTorqueGaugeView @JvmOverloads constructor(
 
         val redlinePercentage = (redlineThreshold - minVal) / range
 
-        if (reverseSweep) {
-            val arcStart = baseStart + totalSweep
-            if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
-                val redlineSweep = totalSweep * (valuePercentage - redlinePercentage)
-                canvas.drawArc(rectF, arcStart, -redlineSweep, false, redlinePaint)
-                canvas.drawArc(rectF, arcStart - redlineSweep, -(activeSweep - redlineSweep), false, accentPaint)
+        // backgroundStyle 1 = None: skip all arc drawing, show only needle/image
+        if (backgroundStyle != 1) {
+            if (reverseSweep) {
+                val arcStart = baseStart + totalSweep
+                if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
+                    val redlineSweep = totalSweep * (valuePercentage - redlinePercentage)
+                    canvas.drawArc(rectF, arcStart, -redlineSweep, false, redlinePaint)
+                    canvas.drawArc(rectF, arcStart - redlineSweep, -(activeSweep - redlineSweep), false, accentPaint)
+                } else {
+                    val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
+                    canvas.drawArc(rectF, arcStart, -sweep, false, accentPaint)
+                }
             } else {
-                val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
-                canvas.drawArc(rectF, arcStart, -sweep, false, accentPaint)
-            }
-        } else {
-            if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
-                val normalSweep = totalSweep * redlinePercentage
-                val redlineSweep = totalSweep * (valuePercentage - redlinePercentage)
-                canvas.drawArc(rectF, baseStart, normalSweep, false, accentPaint)
-                canvas.drawArc(rectF, baseStart + normalSweep, redlineSweep, false, redlinePaint)
-            } else {
-                val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
-                canvas.drawArc(rectF, baseStart, sweep, false, accentPaint)
+                if (valuePercentage > redlinePercentage && redlinePercentage in 0f..1f) {
+                    val normalSweep = totalSweep * redlinePercentage
+                    val redlineSweep = totalSweep * (valuePercentage - redlinePercentage)
+                    canvas.drawArc(rectF, baseStart, normalSweep, false, accentPaint)
+                    canvas.drawArc(rectF, baseStart + normalSweep, redlineSweep, false, redlinePaint)
+                } else {
+                    val sweep = if (activeSweep < 1f && !isPreviewMode) 1f else activeSweep
+                    canvas.drawArc(rectF, baseStart, sweep, false, accentPaint)
+                }
             }
         }
 

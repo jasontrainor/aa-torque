@@ -6,9 +6,11 @@ import android.content.res.Resources.NotFoundException
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.graphics.BlendModeColorFilterCompat
 import androidx.core.graphics.BlendModeCompat
 import androidx.fragment.app.Fragment
@@ -230,6 +232,12 @@ class TorqueGauge : Fragment() {
                 mClock.setImageSpeedometer(resId)
             }
         }
+
+        val titleFontSize = display.titleFontSize
+        view?.findViewById<TextView>(R.id.textTitle)?.setTextSize(
+            TypedValue.COMPLEX_UNIT_SP,
+            if (titleFontSize > 0) titleFontSize.toFloat() else 12f
+        )
 
         mClock.invalidateGauge()
         mRayClock.invalidateGauge()

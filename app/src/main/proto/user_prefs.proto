@@ -61,6 +61,7 @@ message Display {
   float gaugeSize = 38;
   int32 needleStyle = 39;
   int32 backgroundStyle = 40;
+  int32 titleFontSize = 41;
 }
 
 message Screen {

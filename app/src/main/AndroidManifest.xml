@@ -36,7 +36,8 @@
             android:exported="true"
             android:label="@string/activity_settings_title"
             android:icon="@mipmap/ic_launcher"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize|screenLayout">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

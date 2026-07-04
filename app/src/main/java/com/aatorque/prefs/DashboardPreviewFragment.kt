@@ -105,11 +105,13 @@ class DashboardPreviewFragment : Fragment() {
         val btnAdd = view.findViewById<Button>(R.id.btn_add_gauge)
         val btnRemove = view.findViewById<Button>(R.id.btn_remove_gauge)
 
-        val seekRotation   = view.findViewById<SeekBar>(R.id.seekbar_rotation)
-        val textRotation   = view.findViewById<TextView>(R.id.text_rotation_value)
-        val switchFlip     = view.findViewById<Switch>(R.id.switch_flip_sweep)
-        val seekSize       = view.findViewById<SeekBar>(R.id.seekbar_size)
-        val textSizeValue  = view.findViewById<TextView>(R.id.text_size_value)
+        val seekRotation     = view.findViewById<SeekBar>(R.id.seekbar_rotation)
+        val textRotation     = view.findViewById<TextView>(R.id.text_rotation_value)
+        val switchFlip       = view.findViewById<Switch>(R.id.switch_flip_sweep)
+        val seekSize         = view.findViewById<SeekBar>(R.id.seekbar_size)
+        val textSizeValue    = view.findViewById<TextView>(R.id.text_size_value)
+        val seekTitleSize    = view.findViewById<SeekBar>(R.id.seekbar_title_size)
+        val textTitleSize    = view.findViewById<TextView>(R.id.text_title_size_value)
 
         val shapeSelector    = view.findViewById<RadioGroup>(R.id.gauge_shape_selector)
         val needleSelector   = view.findViewById<RadioGroup>(R.id.needle_style_selector)
@@ -188,6 +190,10 @@ class DashboardPreviewFragment : Fragment() {
                 seekSize.progress = sizeProgress
                 val scalePct = (0.5f + sizeProgress / 100f) * 100f
                 textSizeValue.text = "${scalePct.toInt()}%"
+
+                val titleSp = if (display.titleFontSize == 0) 12 else display.titleFontSize
+                seekTitleSize.progress = (titleSp - 8).coerceIn(0, 16)
+                textTitleSize.text = "${titleSp}sp"
 
                 when (display.gaugeStyle) {
                     2    -> view.findViewById<RadioButton>(R.id.shape_bar_h).isChecked = true
@@ -320,6 +326,18 @@ class DashboardPreviewFragment : Fragment() {
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val scale = 0.5f + sb.progress / 100f
                 saveGaugeField(selectedGauge) { it.setGaugeSize(scale) }
+            }
+        })
+
+        // Title font size seekbar (progress 0-16 → 8sp-24sp)
+        seekTitleSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+                textTitleSize.text = "${8 + progress}sp"
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                val sp = 8 + sb.progress
+                saveGaugeField(selectedGauge) { it.setTitleFontSize(sp) }
             }
         })
 

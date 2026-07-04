@@ -209,6 +209,41 @@
 
             </LinearLayout>
 
+            <!-- Per-gauge: title font size -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Title Font Size"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <SeekBar
+                    android:id="@+id/seekbar_title_size"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="16"
+                    android:progress="4" />
+
+                <TextView
+                    android:id="@+id/text_title_size_value"
+                    android:layout_width="52dp"
+                    android:layout_height="wrap_content"
+                    android:text="12sp"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:gravity="end"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
             <!-- Per-gauge: gauge style / shape -->
             <TextView
                 android:layout_width="wrap_content"
