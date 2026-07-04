@@ -5,50 +5,56 @@ import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.SeekBar
-import android.widget.Switch
 import android.widget.TextView
 import androidx.annotation.StyleRes
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import com.aatorque.stats.DashboardFragment
 import com.aatorque.stats.R
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.rarepebble.colorpicker.ColorPickerView
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 
 class DashboardPreviewFragment : Fragment() {
-    val handler = Handler(Looper.getMainLooper())
 
     private var selectedGauge = 0
+    private var isLoadingSettings = false
 
-    // Hold references so color button clicks can read current values
     private var currentBgColor = 0
     private var currentAccentColor = 0
     private var currentNeedleColor = 0
     private var currentRedlineColor = 0
+
+    // View refs needed across helper methods
+    private var circleBgColor: ImageView? = null
+    private var circleAccentColor: ImageView? = null
+    private var circleNeedleColor: ImageView? = null
+    private var circleRedlineColor: ImageView? = null
+    private var switchApplyAll: SwitchMaterial? = null
 
     companion object {
         val hideBars = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.navigationBars()
@@ -78,77 +84,87 @@ class DashboardPreviewFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_dashboard_preview, container, false)
-        val data = runBlocking {
-            requireContext().dataStore.data.first()
-        }
-        inflater.context.setTheme(mapTheme(requireContext(), data.selectedTheme))
         forceRotate(true)
+        return inflater.inflate(R.layout.fragment_dashboard_preview, container, false)
+    }
 
-        if (data.selectedTheme != "Custom") {
-            lifecycleScope.launch {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Ensure theme is switched to Custom asynchronously
+        lifecycleScope.launch {
+            val prefs = requireContext().dataStore.data.first()
+            if (prefs.selectedTheme != "Custom") {
                 requireContext().dataStore.updateData {
                     it.toBuilder().setSelectedTheme("Custom").build()
                 }
             }
         }
 
-        return view
-    }
+        // ── View references ──
+        val btnG1         = view.findViewById<Button>(R.id.btn_gauge_1)
+        val btnG2         = view.findViewById<Button>(R.id.btn_gauge_2)
+        val btnG3         = view.findViewById<Button>(R.id.btn_gauge_3)
+        val btnAdd        = view.findViewById<Button>(R.id.btn_add_gauge)
+        val btnRemove     = view.findViewById<Button>(R.id.btn_remove_gauge)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        val seekRotation  = view.findViewById<SeekBar>(R.id.seekbar_rotation)
+        val textRotation  = view.findViewById<TextView>(R.id.text_rotation_value)
+        val switchFlip    = view.findViewById<SwitchMaterial>(R.id.switch_flip_sweep)
+        val seekSize      = view.findViewById<SeekBar>(R.id.seekbar_size)
+        val textSizeValue = view.findViewById<TextView>(R.id.text_size_value)
+        val seekTitleSize = view.findViewById<SeekBar>(R.id.seekbar_title_size)
+        val textTitleSize = view.findViewById<TextView>(R.id.text_title_size_value)
 
-        val btnG1 = view.findViewById<Button>(R.id.btn_gauge_1)
-        val btnG2 = view.findViewById<Button>(R.id.btn_gauge_2)
-        val btnG3 = view.findViewById<Button>(R.id.btn_gauge_3)
-        val btnAdd = view.findViewById<Button>(R.id.btn_add_gauge)
-        val btnRemove = view.findViewById<Button>(R.id.btn_remove_gauge)
+        val shapeSelector  = view.findViewById<ChipGroup>(R.id.gauge_shape_selector)
+        val needleSelector = view.findViewById<ChipGroup>(R.id.needle_style_selector)
+        val bgStyleSelector= view.findViewById<ChipGroup>(R.id.bg_style_selector)
+        val labelNeedle    = view.findViewById<TextView>(R.id.label_needle_style)
+        val labelBgStyle   = view.findViewById<TextView>(R.id.label_bg_style)
 
-        val seekRotation     = view.findViewById<SeekBar>(R.id.seekbar_rotation)
-        val textRotation     = view.findViewById<TextView>(R.id.text_rotation_value)
-        val switchFlip       = view.findViewById<Switch>(R.id.switch_flip_sweep)
-        val seekSize         = view.findViewById<SeekBar>(R.id.seekbar_size)
-        val textSizeValue    = view.findViewById<TextView>(R.id.text_size_value)
-        val seekTitleSize    = view.findViewById<SeekBar>(R.id.seekbar_title_size)
-        val textTitleSize    = view.findViewById<TextView>(R.id.text_title_size_value)
-
-        val shapeSelector    = view.findViewById<RadioGroup>(R.id.gauge_shape_selector)
-        val needleSelector   = view.findViewById<RadioGroup>(R.id.needle_style_selector)
-        val bgStyleSelector  = view.findViewById<RadioGroup>(R.id.bg_style_selector)
-        val labelNeedle      = view.findViewById<TextView>(R.id.label_needle_style)
-        val labelBgStyle     = view.findViewById<TextView>(R.id.label_bg_style)
-
-        val btnBg          = view.findViewById<Button>(R.id.btn_bg_color)
-        val btnAccent      = view.findViewById<Button>(R.id.btn_accent_color)
-        val btnNeedle      = view.findViewById<Button>(R.id.btn_needle_color)
-        val btnRedline     = view.findViewById<Button>(R.id.btn_redline_color)
         val btnNeedleImg   = view.findViewById<Button>(R.id.btn_needle_image)
         val btnDialBgImg   = view.findViewById<Button>(R.id.btn_dial_bg_image)
         val btnGaugeIcon   = view.findViewById<Button>(R.id.btn_gauge_icon)
         val presetRow      = view.findViewById<LinearLayout>(R.id.preset_row)
 
-        buildPresetRow(presetRow)
+        val swatchBg       = view.findViewById<LinearLayout>(R.id.swatch_bg)
+        val swatchAccent   = view.findViewById<LinearLayout>(R.id.swatch_accent)
+        val swatchNeedle   = view.findViewById<LinearLayout>(R.id.swatch_needle)
+        val swatchRedline  = view.findViewById<LinearLayout>(R.id.swatch_redline)
+
+        circleBgColor      = view.findViewById(R.id.circle_bg_color)
+        circleAccentColor  = view.findViewById(R.id.circle_accent_color)
+        circleNeedleColor  = view.findViewById(R.id.circle_needle_color)
+        circleRedlineColor = view.findViewById(R.id.circle_redline_color)
+        switchApplyAll     = view.findViewById(R.id.switch_apply_all)
+
+        val textScreenLabel  = view.findViewById<TextView>(R.id.text_screen_label)
+        val editScreenTitle  = view.findViewById<EditText>(R.id.edit_screen_title)
+        val btnPrevScreen    = view.findViewById<ImageButton>(R.id.btn_prev_screen)
+        val btnNextScreen    = view.findViewById<ImageButton>(R.id.btn_next_screen)
+        val btnFullscreen    = view.findViewById<ImageButton>(R.id.btn_fullscreen)
+        val btnBackgroundPicker = view.findViewById<Button>(R.id.btn_background_picker)
+        val btnFontPicker    = view.findViewById<Button>(R.id.btn_font_picker)
 
         val gaugeButtons = listOf(btnG1, btnG2, btnG3)
+
+        // ── Helpers ──
 
         fun isTextStyle(gaugeStyle: Int) = gaugeStyle == 4
 
         fun updateNeedleImageVisibility(needleStyle: Int) {
-            val isImage = needleStyle == 3
-            val imgVis = if (isImage) View.VISIBLE else View.GONE
-            btnNeedleImg.visibility = imgVis
-            btnDialBgImg.visibility = imgVis
+            val vis = if (needleStyle == 3) View.VISIBLE else View.GONE
+            btnNeedleImg.visibility = vis
+            btnDialBgImg.visibility = vis
         }
 
         fun updateStyleVisibility(gaugeStyle: Int) {
-            val isText = isTextStyle(gaugeStyle)
-            val needleVis = if (isText) View.GONE else View.VISIBLE
+            val needleVis = if (isTextStyle(gaugeStyle)) View.GONE else View.VISIBLE
             labelNeedle.visibility = needleVis
             needleSelector.visibility = needleVis
             labelBgStyle.visibility = needleVis
             bgStyleSelector.visibility = needleVis
-            if (isText) {
+            if (isTextStyle(gaugeStyle)) {
                 btnNeedleImg.visibility = View.GONE
                 btnDialBgImg.visibility = View.GONE
             }
@@ -157,8 +173,8 @@ class DashboardPreviewFragment : Fragment() {
         fun refreshGaugeButtons() {
             lifecycleScope.launch {
                 val prefs = requireContext().dataStore.data.first()
-                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
-                val screen = prefs.getScreens(screenIndex)
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(si)
                 var enabledCount = 0
                 var disabledCount = 0
                 gaugeButtons.forEachIndexed { i, btn ->
@@ -166,8 +182,8 @@ class DashboardPreviewFragment : Fragment() {
                     if (disabled) disabledCount++ else enabledCount++
                     btn.alpha = when {
                         i == selectedGauge -> 1f
-                        disabled -> 0.3f
-                        else -> 0.6f
+                        disabled           -> 0.3f
+                        else               -> 0.6f
                     }
                 }
                 btnAdd.isEnabled = disabledCount > 0
@@ -178,8 +194,10 @@ class DashboardPreviewFragment : Fragment() {
         fun loadGaugeSettings(index: Int) {
             lifecycleScope.launch {
                 val prefs = requireContext().dataStore.data.first()
-                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
-                val display = prefs.getScreens(screenIndex).getGauges(index)
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val display = prefs.getScreens(si).getGauges(index)
+
+                isLoadingSettings = true
 
                 val rotDeg = display.gaugeRotation.roundToInt()
                 seekRotation.progress = rotDeg
@@ -189,64 +207,128 @@ class DashboardPreviewFragment : Fragment() {
                 val sizeProgress = if (display.gaugeSize == 0f) 50
                     else ((display.gaugeSize - 0.5f) * 100f).toInt().coerceIn(0, 150)
                 seekSize.progress = sizeProgress
-                val scalePct = (0.5f + sizeProgress / 100f) * 100f
-                textSizeValue.text = "${scalePct.toInt()}%"
+                textSizeValue.text = "${(0.5f + sizeProgress / 100f).times(100f).toInt()}%"
 
                 val titleSp = if (display.titleFontSize == 0) 12 else display.titleFontSize
                 seekTitleSize.progress = (titleSp - 8).coerceIn(0, 16)
                 textTitleSize.text = "${titleSp}sp"
 
                 when (display.gaugeStyle) {
-                    2    -> view.findViewById<RadioButton>(R.id.shape_bar_h).isChecked = true
-                    3    -> view.findViewById<RadioButton>(R.id.shape_bar_v).isChecked = true
-                    4    -> view.findViewById<RadioButton>(R.id.shape_text).isChecked = true
-                    else -> view.findViewById<RadioButton>(R.id.shape_circular).isChecked = true
+                    2    -> view.findViewById<Chip>(R.id.chip_shape_bar_h).isChecked = true
+                    3    -> view.findViewById<Chip>(R.id.chip_shape_bar_v).isChecked = true
+                    4    -> view.findViewById<Chip>(R.id.chip_shape_text).isChecked = true
+                    else -> view.findViewById<Chip>(R.id.chip_shape_circular).isChecked = true
                 }
 
                 when (display.needleStyle) {
-                    1    -> view.findViewById<RadioButton>(R.id.needle_line).isChecked = true
-                    2    -> view.findViewById<RadioButton>(R.id.needle_triangle).isChecked = true
-                    3    -> view.findViewById<RadioButton>(R.id.needle_image).isChecked = true
-                    else -> view.findViewById<RadioButton>(R.id.needle_dot).isChecked = true
+                    1    -> view.findViewById<Chip>(R.id.chip_needle_line).isChecked = true
+                    2    -> view.findViewById<Chip>(R.id.chip_needle_triangle).isChecked = true
+                    3    -> view.findViewById<Chip>(R.id.chip_needle_image).isChecked = true
+                    else -> view.findViewById<Chip>(R.id.chip_needle_dot).isChecked = true
                 }
 
                 when (display.backgroundStyle) {
-                    1    -> view.findViewById<RadioButton>(R.id.bg_none).isChecked = true
-                    2    -> view.findViewById<RadioButton>(R.id.bg_filled).isChecked = true
-                    else -> view.findViewById<RadioButton>(R.id.bg_arc).isChecked = true
+                    1    -> view.findViewById<Chip>(R.id.chip_bg_none).isChecked = true
+                    2    -> view.findViewById<Chip>(R.id.chip_bg_filled).isChecked = true
+                    else -> view.findViewById<Chip>(R.id.chip_bg_arc).isChecked = true
                 }
+
+                isLoadingSettings = false
 
                 updateStyleVisibility(display.gaugeStyle)
                 updateNeedleImageVisibility(display.needleStyle)
 
-                val needleName = display.customNeedle
-                btnNeedleImg.text = if (needleName.isNotEmpty()) needleName else "Select Needle Image"
-                val bgName = display.customDialBackground
-                btnDialBgImg.text = if (bgName.isNotEmpty()) bgName else "Select Dial Background"
-                val iconName = display.icon
-                btnGaugeIcon.text = if (iconName.isNotEmpty() && iconName != "ic_none") iconName else "Select Icon"
+                btnNeedleImg.text = display.customNeedle.takeIf { it.isNotEmpty() } ?: "Select Needle Image"
+                btnDialBgImg.text = display.customDialBackground.takeIf { it.isNotEmpty() } ?: "Select Dial Background"
+                btnGaugeIcon.text = display.icon.takeIf { it.isNotEmpty() && it != "ic_none" } ?: "Select Icon"
 
-                currentBgColor     = if (display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
-                currentAccentColor = if (display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
-                currentNeedleColor = if (display.customNeedleColor != 0) display.customNeedleColor else prefs.customNeedleColor
-                currentRedlineColor= if (display.customRedlineColor!= 0) display.customRedlineColor else prefs.customRedlineColor
-
-                btnBg.setBackgroundColor(currentBgColor)
-                btnAccent.setBackgroundColor(currentAccentColor)
-                btnNeedle.setBackgroundColor(currentNeedleColor)
-                btnRedline.setBackgroundColor(currentRedlineColor)
+                currentBgColor      = if (display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
+                currentAccentColor  = if (display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
+                currentNeedleColor  = if (display.customNeedleColor != 0) display.customNeedleColor else prefs.customNeedleColor
+                currentRedlineColor = if (display.customRedlineColor != 0) display.customRedlineColor else prefs.customRedlineColor
+                updateColorSwatches()
             }
         }
 
         fun selectGauge(index: Int) {
             selectedGauge = index
-            gaugeButtons.forEachIndexed { i, btn ->
-                btn.alpha = if (i == index) 1f else 0.5f
-            }
+            gaugeButtons.forEachIndexed { i, btn -> btn.alpha = if (i == index) 1f else 0.5f }
             loadGaugeSettings(index)
             attachDragListenerToGauge(index)
             refreshGaugeButtons()
         }
+
+        // ── Screen bar ──
+
+        fun refreshScreenBar() {
+            lifecycleScope.launch {
+                val prefs = requireContext().dataStore.data.first()
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(si)
+                textScreenLabel.text = "Screen ${si + 1} of ${prefs.screensCount}"
+                editScreenTitle.setText(screen.title)
+            }
+        }
+
+        fun navigateScreen(delta: Int) {
+            lifecycleScope.launch {
+                requireContext().dataStore.updateData { prefs ->
+                    val newIndex = (abs(prefs.currentScreen) + delta + prefs.screensCount) % prefs.screensCount
+                    prefs.toBuilder().setCurrentScreen(newIndex).build()
+                }
+                refreshScreenBar()
+                loadGaugeSettings(selectedGauge)
+                refreshGaugeButtons()
+            }
+        }
+
+        btnPrevScreen.setOnClickListener { navigateScreen(-1) }
+        btnNextScreen.setOnClickListener { navigateScreen(+1) }
+
+        editScreenTitle.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                saveScreenTitle(editScreenTitle.text.toString())
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(editScreenTitle.windowToken, 0)
+                editScreenTitle.clearFocus()
+                true
+            } else false
+        }
+
+        editScreenTitle.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) saveScreenTitle(editScreenTitle.text.toString())
+        }
+
+        // ── Fullscreen preview button ──
+
+        btnFullscreen.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .replace(R.id.settings_fragment, FullscreenPreviewFragment(), "fullscreen_preview")
+                .addToBackStack(null)
+                .commit()
+        }
+
+        // ── Dashboard card: background + font pickers ──
+
+        btnBackgroundPicker.setOnClickListener {
+            pickImage("Select Background", R.array.thumbs_backgrounds, R.array.backgroundstrings, R.array.backgrounds) { value, _ ->
+                lifecycleScope.launch(Dispatchers.IO) {
+                    requireContext().dataStore.updateData { it.toBuilder().setSelectedBackground(value).build() }
+                }
+            }
+        }
+
+        btnFontPicker.setOnClickListener {
+            pickImage("Select Font", R.array.FontThumbs, R.array.fontEntries, R.array.fontValues) { value, _ ->
+                lifecycleScope.launch(Dispatchers.IO) {
+                    requireContext().dataStore.updateData { it.toBuilder().setSelectedFont(value).build() }
+                }
+            }
+        }
+
+        // ── Gauge selector ──
 
         btnG1.setOnClickListener { selectGauge(0) }
         btnG2.setOnClickListener { selectGauge(1) }
@@ -255,19 +337,15 @@ class DashboardPreviewFragment : Fragment() {
         btnAdd.setOnClickListener {
             lifecycleScope.launch {
                 val prefs = requireContext().dataStore.data.first()
-                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
-                val screen = prefs.getScreens(screenIndex)
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(si)
                 val disabledIndex = (0 until screen.gaugesCount).firstOrNull { screen.getGauges(it).disabled }
                 if (disabledIndex != null) {
-                    withContext(Dispatchers.IO) {
-                        requireContext().dataStore.updateData { p ->
-                            val si = abs(p.currentScreen) % p.screensCount
-                            val s = p.getScreens(si)
-                            val d = s.getGauges(disabledIndex)
-                            val updated = d.toBuilder().setDisabled(false).build()
-                            val updatedScreen = s.toBuilder().setGauges(disabledIndex, updated).build()
-                            p.toBuilder().setScreens(si, updatedScreen).build()
-                        }
+                    requireContext().dataStore.updateData { p ->
+                        val idx = abs(p.currentScreen) % p.screensCount
+                        val s = p.getScreens(idx)
+                        val updated = s.getGauges(disabledIndex).toBuilder().setDisabled(false).build()
+                        p.toBuilder().setScreens(idx, s.toBuilder().setGauges(disabledIndex, updated).build()).build()
                     }
                     selectGauge(disabledIndex)
                 }
@@ -277,30 +355,39 @@ class DashboardPreviewFragment : Fragment() {
         btnRemove.setOnClickListener {
             lifecycleScope.launch {
                 val prefs = requireContext().dataStore.data.first()
-                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
-                val screen = prefs.getScreens(screenIndex)
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(si)
                 val enabledCount = (0 until screen.gaugesCount).count { !screen.getGauges(it).disabled }
-                if (enabledCount <= 1) return@launch  // keep at least one gauge
+                if (enabledCount <= 1) return@launch
                 val nextEnabled = (0 until screen.gaugesCount).firstOrNull {
                     it != selectedGauge && !screen.getGauges(it).disabled
                 } ?: 0
-                withContext(Dispatchers.IO) {
-                    requireContext().dataStore.updateData { p ->
-                        val si = abs(p.currentScreen) % p.screensCount
-                        val s = p.getScreens(si)
-                        val d = s.getGauges(selectedGauge)
-                        val updated = d.toBuilder().setDisabled(true).build()
-                        val updatedScreen = s.toBuilder().setGauges(selectedGauge, updated).build()
-                        p.toBuilder().setScreens(si, updatedScreen).build()
-                    }
+                requireContext().dataStore.updateData { p ->
+                    val idx = abs(p.currentScreen) % p.screensCount
+                    val s = p.getScreens(idx)
+                    val updated = s.getGauges(selectedGauge).toBuilder().setDisabled(true).build()
+                    p.toBuilder().setScreens(idx, s.toBuilder().setGauges(selectedGauge, updated).build()).build()
                 }
                 selectGauge(nextEnabled)
             }
         }
 
-        selectGauge(0)
+        // ── Gauge Style chip group ──
 
-        // Rotation seekbar — snap to nearest 45° on stop
+        shapeSelector.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (isLoadingSettings) return@setOnCheckedStateChangeListener
+            val style = when (checkedIds.firstOrNull()) {
+                R.id.chip_shape_bar_h -> 2
+                R.id.chip_shape_bar_v -> 3
+                R.id.chip_shape_text  -> 4
+                else                  -> 1
+            }
+            updateStyleVisibility(style)
+            saveGaugeField(selectedGauge) { it.setGaugeStyle(style) }
+        }
+
+        // ── Rotation seekbar ──
+
         seekRotation.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 textRotation.text = "${progress}°"
@@ -314,59 +401,36 @@ class DashboardPreviewFragment : Fragment() {
             }
         })
 
-        // Flip sweep toggle
+        // ── Flip sweep toggle ──
+
         switchFlip.setOnCheckedChangeListener { _, checked ->
-            saveGaugeField(selectedGauge) { it.setReverseSweep(checked) }
+            if (!isLoadingSettings) saveGaugeField(selectedGauge) { it.setReverseSweep(checked) }
         }
 
-        // Size seekbar (0–100 → 50%–150%)
+        // ── Size seekbar (0–150 → 50%–200%) ──
+
         seekSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                val scalePct = ((0.5f + progress / 100f) * 100f).toInt()
-                textSizeValue.text = "${scalePct}%"
+                textSizeValue.text = "${((0.5f + progress / 100f) * 100f).toInt()}%"
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
-                val scale = 0.5f + sb.progress / 100f
-                saveGaugeField(selectedGauge) { it.setGaugeSize(scale) }
+                saveGaugeField(selectedGauge) { it.setGaugeSize(0.5f + sb.progress / 100f) }
             }
         })
 
-        // Title font size seekbar (progress 0-16 → 8sp-24sp)
-        seekTitleSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                textTitleSize.text = "${8 + progress}sp"
-            }
-            override fun onStartTrackingTouch(sb: SeekBar) {}
-            override fun onStopTrackingTouch(sb: SeekBar) {
-                val sp = 8 + sb.progress
-                saveGaugeField(selectedGauge) { it.setTitleFontSize(sp) }
-            }
-        })
+        // ── Needle Style chip group ──
 
-        // Gauge shape — per-gauge
-        shapeSelector.setOnCheckedChangeListener { _, checkedId ->
-            val style = when (checkedId) {
-                R.id.shape_bar_h -> 2
-                R.id.shape_bar_v -> 3
-                R.id.shape_text  -> 4
-                else             -> 1
-            }
-            updateStyleVisibility(style)
-            saveGaugeField(selectedGauge) { it.setGaugeStyle(style) }
-        }
-
-        // Needle style
-        needleSelector.setOnCheckedChangeListener { _, checkedId ->
-            val style = when (checkedId) {
-                R.id.needle_line     -> 1
-                R.id.needle_triangle -> 2
-                R.id.needle_image    -> 3
-                else                 -> 0
+        needleSelector.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (isLoadingSettings) return@setOnCheckedStateChangeListener
+            val style = when (checkedIds.firstOrNull()) {
+                R.id.chip_needle_line     -> 1
+                R.id.chip_needle_triangle -> 2
+                R.id.chip_needle_image    -> 3
+                else                      -> 0
             }
             updateNeedleImageVisibility(style)
-            if (style == 3 && view.findViewById<Button>(R.id.btn_needle_image).text == "Select Needle Image") {
-                // Auto-open the picker when Image is first selected with no image chosen
+            if (style == 3 && btnNeedleImg.text == "Select Needle Image") {
                 pickImage("Select Needle Image", R.array.needleImages, R.array.needleEntries, R.array.needleValues) { value, label ->
                     btnNeedleImg.text = label
                     saveGaugeField(selectedGauge) { it.setCustomNeedle(value) }
@@ -375,17 +439,32 @@ class DashboardPreviewFragment : Fragment() {
             saveGaugeField(selectedGauge) { it.setNeedleStyle(style) }
         }
 
-        // Background style
-        bgStyleSelector.setOnCheckedChangeListener { _, checkedId ->
-            val style = when (checkedId) {
-                R.id.bg_none   -> 1
-                R.id.bg_filled -> 2
-                else           -> 0
+        // ── Background Style chip group ──
+
+        bgStyleSelector.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (isLoadingSettings) return@setOnCheckedStateChangeListener
+            val style = when (checkedIds.firstOrNull()) {
+                R.id.chip_bg_none   -> 1
+                R.id.chip_bg_filled -> 2
+                else                -> 0
             }
             saveGaugeField(selectedGauge) { it.setBackgroundStyle(style) }
         }
 
-        // Needle image picker (visible only when needle_image is selected)
+        // ── Title Font Size seekbar ──
+
+        seekTitleSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+                textTitleSize.text = "${8 + progress}sp"
+            }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                saveGaugeField(selectedGauge) { it.setTitleFontSize(8 + sb.progress) }
+            }
+        })
+
+        // ── Image pickers ──
+
         btnNeedleImg.setOnClickListener {
             pickImage("Select Needle Image", R.array.needleImages, R.array.needleEntries, R.array.needleValues) { value, label ->
                 btnNeedleImg.text = label
@@ -393,7 +472,6 @@ class DashboardPreviewFragment : Fragment() {
             }
         }
 
-        // Dial background image picker (visible only when needle_image is selected)
         btnDialBgImg.setOnClickListener {
             pickImage("Select Dial Background", R.array.dialBgImages, R.array.dialBgEntries, R.array.dialBgValues) { value, label ->
                 btnDialBgImg.text = label
@@ -401,7 +479,6 @@ class DashboardPreviewFragment : Fragment() {
             }
         }
 
-        // Gauge icon picker
         btnGaugeIcon.setOnClickListener {
             pickImage("Select Icon", R.array.icons, R.array.iconDesc, R.array.icon_values) { value, label ->
                 btnGaugeIcon.text = label
@@ -409,35 +486,63 @@ class DashboardPreviewFragment : Fragment() {
             }
         }
 
-        // Color pickers — per-gauge
-        btnBg.setOnClickListener {
+        // ── Color presets ──
+
+        buildPresetRow(presetRow)
+
+        // ── Color swatch pickers ──
+
+        swatchBg.setOnClickListener {
             pickColor("Background Color", currentBgColor) { color ->
                 currentBgColor = color
-                btnBg.setBackgroundColor(color)
-                saveGaugeField(selectedGauge) { it.setCustomBgColor(color) }
+                updateColorSwatches()
+                val indices = if (switchApplyAll?.isChecked == true) listOf(0, 1, 2) else listOf(selectedGauge)
+                indices.forEach { i -> saveGaugeField(i) { it.setCustomBgColor(color) } }
             }
         }
-        btnAccent.setOnClickListener {
+
+        swatchAccent.setOnClickListener {
             pickColor("Accent Color", currentAccentColor) { color ->
                 currentAccentColor = color
-                btnAccent.setBackgroundColor(color)
-                saveGaugeField(selectedGauge) { it.setCustomAccentColor(color) }
+                updateColorSwatches()
+                val indices = if (switchApplyAll?.isChecked == true) listOf(0, 1, 2) else listOf(selectedGauge)
+                indices.forEach { i -> saveGaugeField(i) { it.setCustomAccentColor(color) } }
             }
         }
-        btnNeedle.setOnClickListener {
+
+        swatchNeedle.setOnClickListener {
             pickColor("Needle Color", currentNeedleColor) { color ->
                 currentNeedleColor = color
-                btnNeedle.setBackgroundColor(color)
-                saveGaugeField(selectedGauge) { it.setCustomNeedleColor(color) }
+                updateColorSwatches()
+                val indices = if (switchApplyAll?.isChecked == true) listOf(0, 1, 2) else listOf(selectedGauge)
+                indices.forEach { i -> saveGaugeField(i) { it.setCustomNeedleColor(color) } }
             }
         }
-        btnRedline.setOnClickListener {
+
+        swatchRedline.setOnClickListener {
             pickColor("Redline Color", currentRedlineColor) { color ->
                 currentRedlineColor = color
-                btnRedline.setBackgroundColor(color)
-                saveGaugeField(selectedGauge) { it.setCustomRedlineColor(color) }
+                updateColorSwatches()
+                val indices = if (switchApplyAll?.isChecked == true) listOf(0, 1, 2) else listOf(selectedGauge)
+                indices.forEach { i -> saveGaugeField(i) { it.setCustomRedlineColor(color) } }
             }
         }
+
+        // ── Initial load ──
+
+        refreshScreenBar()
+        selectGauge(0)
+    }
+
+    private fun updateColorSwatches() {
+        fun oval(color: Int) = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
+        circleBgColor?.background      = oval(currentBgColor)
+        circleAccentColor?.background  = oval(currentAccentColor)
+        circleNeedleColor?.background  = oval(currentNeedleColor)
+        circleRedlineColor?.background = oval(currentRedlineColor)
     }
 
     private fun pickImage(
@@ -493,8 +598,7 @@ class DashboardPreviewFragment : Fragment() {
             .create()
 
         entries.forEachIndexed { i, label ->
-            val row = container.getChildAt(i) as? LinearLayout
-            row?.setOnClickListener {
+            (container.getChildAt(i) as? LinearLayout)?.setOnClickListener {
                 onPicked(values[i], label)
                 dialog.dismiss()
             }
@@ -540,16 +644,9 @@ class DashboardPreviewFragment : Fragment() {
                         dashRoot.getLocationOnScreen(rootLoc)
                         val gvLoc = IntArray(2)
                         v.getLocationOnScreen(gvLoc)
-
-                        val centerX = (gvLoc[0] - rootLoc[0] + v.width / 2f)
-                        val centerY = (gvLoc[1] - rootLoc[1] + v.height / 2f)
-
-                        val fracX = (centerX / rootW).coerceIn(0f, 1f)
-                        val fracY = (centerY / rootH).coerceIn(0f, 1f)
-
-                        saveGaugeField(gaugeIndex) {
-                            it.setGaugePosX(fracX).setGaugePosY(fracY)
-                        }
+                        val fracX = ((gvLoc[0] - rootLoc[0] + v.width / 2f) / rootW).coerceIn(0f, 1f)
+                        val fracY = ((gvLoc[1] - rootLoc[1] + v.height / 2f) / rootH).coerceIn(0f, 1f)
+                        saveGaugeField(gaugeIndex) { it.setGaugePosX(fracX).setGaugePosY(fracY) }
                     }
                     true
                 }
@@ -558,24 +655,33 @@ class DashboardPreviewFragment : Fragment() {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun saveGaugeField(gaugeIndex: Int, update: (com.aatorque.datastore.Display.Builder) -> com.aatorque.datastore.Display.Builder) {
-        val context = requireContext()
-        GlobalScope.launch(Dispatchers.IO) {
-            context.dataStore.updateData { prefs ->
-                val screenIndex = abs(prefs.currentScreen) % prefs.screensCount
-                val screen = prefs.getScreens(screenIndex)
-                val display = screen.getGauges(gaugeIndex)
-                val updatedDisplay = update(display.toBuilder()).build()
-                val updatedScreen = screen.toBuilder().setGauges(gaugeIndex, updatedDisplay).build()
-                prefs.toBuilder().setScreens(screenIndex, updatedScreen).build()
+    private fun saveGaugeField(
+        gaugeIndex: Int,
+        update: (com.aatorque.datastore.Display.Builder) -> com.aatorque.datastore.Display.Builder
+    ) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            requireContext().dataStore.updateData { prefs ->
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(si)
+                val updatedDisplay = update(screen.getGauges(gaugeIndex).toBuilder()).build()
+                prefs.toBuilder().setScreens(si, screen.toBuilder().setGauges(gaugeIndex, updatedDisplay).build()).build()
+            }
+        }
+    }
+
+    private fun saveScreenTitle(title: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            requireContext().dataStore.updateData { prefs ->
+                val si = abs(prefs.currentScreen) % prefs.screensCount
+                val screen = prefs.getScreens(si)
+                prefs.toBuilder().setScreens(si, screen.toBuilder().setTitle(title).build()).build()
             }
         }
     }
 
     private fun buildPresetRow(presetRow: LinearLayout) {
         val dp = requireContext().resources.displayMetrics.density
-        val swatchSize = (48 * dp).toInt()
+        val swatchSize = (56 * dp).toInt()
         val swatchMargin = (8 * dp).toInt()
 
         PRESETS.forEach { preset ->
@@ -585,7 +691,6 @@ class DashboardPreviewFragment : Fragment() {
                     marginEnd = swatchMargin
                 }
             }
-
             val swatch = View(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(swatchSize, swatchSize)
                 background = GradientDrawable().apply {
@@ -595,18 +700,13 @@ class DashboardPreviewFragment : Fragment() {
                 }
                 setOnClickListener { applyPreset(preset) }
             }
-
             val label = TextView(requireContext()).apply {
                 text = preset.name
                 textSize = 9f
                 setTextColor(Color.WHITE)
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 textAlignment = View.TEXT_ALIGNMENT_CENTER
             }
-
             container.addView(swatch)
             container.addView(label)
             presetRow.addView(container)
@@ -614,20 +714,20 @@ class DashboardPreviewFragment : Fragment() {
     }
 
     private fun applyPreset(preset: ColorPreset) {
-        saveGaugeField(selectedGauge) {
-            it.setCustomBgColor(preset.bg)
-              .setCustomAccentColor(preset.accent)
-              .setCustomNeedleColor(preset.needle)
-              .setCustomRedlineColor(preset.redline)
+        val indices = if (switchApplyAll?.isChecked == true) listOf(0, 1, 2) else listOf(selectedGauge)
+        indices.forEach { i ->
+            saveGaugeField(i) {
+                it.setCustomBgColor(preset.bg)
+                  .setCustomAccentColor(preset.accent)
+                  .setCustomNeedleColor(preset.needle)
+                  .setCustomRedlineColor(preset.redline)
+            }
         }
-        currentBgColor     = preset.bg
-        currentAccentColor = preset.accent
-        currentNeedleColor = preset.needle
-        currentRedlineColor= preset.redline
-        view?.findViewById<Button>(R.id.btn_bg_color)?.setBackgroundColor(preset.bg)
-        view?.findViewById<Button>(R.id.btn_accent_color)?.setBackgroundColor(preset.accent)
-        view?.findViewById<Button>(R.id.btn_needle_color)?.setBackgroundColor(preset.needle)
-        view?.findViewById<Button>(R.id.btn_redline_color)?.setBackgroundColor(preset.redline)
+        currentBgColor      = preset.bg
+        currentAccentColor  = preset.accent
+        currentNeedleColor  = preset.needle
+        currentRedlineColor = preset.redline
+        updateColorSwatches()
     }
 
     private fun pickColor(title: String, initialColor: Int, onColorSelected: (Int) -> Unit) {
@@ -657,18 +757,18 @@ class DashboardPreviewFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         forceRotate(true)
-
         val window = requireActivity().window
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, window.decorView).hide(hideBars)
-        WindowCompat.getInsetsController(window, window.decorView).systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(hideBars)
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        val window = requireActivity().window
         forceRotate(false)
+        val window = requireActivity().window
         WindowCompat.setDecorFitsSystemWindows(window, true)
         WindowInsetsControllerCompat(window, window.decorView).show(hideBars)
     }
