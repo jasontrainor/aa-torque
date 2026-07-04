@@ -244,6 +244,14 @@
 
             </LinearLayout>
 
+            <!-- Per-gauge: icon -->
+            <Button
+                android:id="@+id/btn_gauge_icon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Icon"
+                android:layout_marginBottom="12dp" />
+
             <!-- Per-gauge: gauge style / shape -->
             <TextView
                 android:layout_width="wrap_content"

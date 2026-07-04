@@ -23,8 +23,7 @@ class CreditsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        btnOpenUrl(R.id.githubBtn, "https://github.com/agronick/aa-torque")
-        btnOpenUrl(R.id.donateBtn, "https://www.paypal.me/kagronick")
+        btnOpenUrl(R.id.githubBtn, "https://github.com/jasontrainor/aa-torque")
         btnOpenUrl(R.id.translateBtn, "https://poeditor.com/join/project/yttme0y1VZ")
         val iconCredits = view.findViewById<LinearLayout>(R.id.ic_credits_list)
         resources.getStringArray(R.array.ic_credits_items).forEach {

@@ -8,8 +8,11 @@
     <string name="app_name">AA Torque</string>
     <string name="credits_author">Based on the app made by:</string>
     <string name="credits_basedon">Based on the SDK and demo App by:</string>
+    <string name="credits_condensed">Based on work by Kyle Agronick, Chillout, and Martoreto</string>
     <string name="credits_drivesafely">Drive Safely.</string>
+    <string name="credits_section_header">Credits</string>
     <string name="credits_thanks">Special thanks to:</string>
+    <string name="app_description">Android Auto OBD-II gauge display for Torque Pro</string>
     <string name="element_VIN">VIN</string>
     <string name="element_batteryVoltage">Battery voltage</string>
     <string name="element_brakePressure">Brake Pressure</string>

@@ -323,7 +323,7 @@ open class DashboardFragment : AlbumArt() {
 
     fun applyGaugePosition(index: Int, posX: Float, posY: Float) {
         val gv = gaugeViews[index] ?: return
-        rootView.doOnLayout {
+        gv.doOnLayout {
             val rootLoc = IntArray(2)
             rootView.getLocationOnScreen(rootLoc)
             val gvLoc = IntArray(2)

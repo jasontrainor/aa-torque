@@ -125,6 +125,7 @@ class DashboardPreviewFragment : Fragment() {
         val btnRedline     = view.findViewById<Button>(R.id.btn_redline_color)
         val btnNeedleImg   = view.findViewById<Button>(R.id.btn_needle_image)
         val btnDialBgImg   = view.findViewById<Button>(R.id.btn_dial_bg_image)
+        val btnGaugeIcon   = view.findViewById<Button>(R.id.btn_gauge_icon)
         val presetRow      = view.findViewById<LinearLayout>(R.id.preset_row)
 
         buildPresetRow(presetRow)
@@ -222,6 +223,8 @@ class DashboardPreviewFragment : Fragment() {
                 btnNeedleImg.text = if (needleName.isNotEmpty()) needleName else "Select Needle Image"
                 val bgName = display.customDialBackground
                 btnDialBgImg.text = if (bgName.isNotEmpty()) bgName else "Select Dial Background"
+                val iconName = display.icon
+                btnGaugeIcon.text = if (iconName.isNotEmpty() && iconName != "ic_none") iconName else "Select Icon"
 
                 currentBgColor     = if (display.customBgColor     != 0) display.customBgColor     else prefs.customBackgroundColor
                 currentAccentColor = if (display.customAccentColor != 0) display.customAccentColor else prefs.customAccentColor
@@ -395,6 +398,14 @@ class DashboardPreviewFragment : Fragment() {
             pickImage("Select Dial Background", R.array.dialBgImages, R.array.dialBgEntries, R.array.dialBgValues) { value, label ->
                 btnDialBgImg.text = label
                 saveGaugeField(selectedGauge) { it.setCustomDialBackground(value) }
+            }
+        }
+
+        // Gauge icon picker
+        btnGaugeIcon.setOnClickListener {
+            pickImage("Select Icon", R.array.icons, R.array.iconDesc, R.array.icon_values) { value, label ->
+                btnGaugeIcon.text = label
+                saveGaugeField(selectedGauge) { it.setIcon(value) }
             }
         }
 
