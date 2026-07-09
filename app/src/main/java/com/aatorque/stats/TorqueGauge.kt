@@ -282,10 +282,10 @@ class TorqueGauge : Fragment() {
         val indicatorDrawable =
             requireContext().theme.obtainStyledAttributes(intArrayOf(R.attr.themedNeedle))
                 .getDrawable(0)
-        val imageIndicator = SizedImageIndicator(requireContext(), indicatorDrawable!!)
+        val imageIndicator = indicatorDrawable?.let { SizedImageIndicator(requireContext(), it) }
         val color = mClock.indicator.color
         Timber.i("IndicatorColor: $color")
-        if (color == 1996533487) {       // if indicator color in the style is @color:aqua, make it an imageindicator
+        if (color == 1996533487 && imageIndicator != null) {       // if indicator color in the style is @color:aqua, make it an imageindicator
             mClock.indicator = imageIndicator
             mRayClock.indicatorLightColor = Color.parseColor("#00FFFFFF")
         } else {
@@ -306,7 +306,7 @@ class TorqueGauge : Fragment() {
             mClock.indicatorLightColor = Color.parseColor("#00FFFFFF")
             //
             mRayClock.indicatorLightColor = Color.parseColor("#00FFFFFF")
-        } else if (color == -14575885) {
+        } else if (color == -14575885 && imageIndicator != null) {
             //if theme has transparent indicator color, give clocks a custom image indicator
             //todo: do this on other fragments as well
             mClock.indicator = imageIndicator

@@ -35,6 +35,7 @@ import com.rarepebble.colorpicker.ColorPickerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -85,6 +86,8 @@ class DashboardPreviewFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         forceRotate(true)
+        val selectedTheme = runBlocking { requireContext().dataStore.data.first().selectedTheme }
+        inflater.context.setTheme(mapTheme(requireContext(), selectedTheme))
         return inflater.inflate(R.layout.fragment_dashboard_preview, container, false)
     }
 
