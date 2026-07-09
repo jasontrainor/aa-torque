@@ -322,8 +322,6 @@
                     app:layout_constraintRight_toLeftOf="@+id/guideline2"
                     app:layout_constraintTop_toTopOf="parent"
                     android:visibility="@{!showChart ? View.VISIBLE : View.GONE}"
-                    android:scaleX="@{largeCenter ? 1.1f : 1f}"
-                    android:scaleY="@{largeCenter ? 1.1f : 1f}"
                     app:alpha="@{gaugeAlpha}" />
 
                 <androidx.fragment.app.FragmentContainerView

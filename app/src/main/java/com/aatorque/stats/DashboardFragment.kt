@@ -63,6 +63,7 @@ open class DashboardFragment : AlbumArt() {
     var guages = arrayOfNulls<TorqueGauge>(3)
     var displays = arrayOfNulls<TorqueDisplay>(4)
     var gaugeViews = arrayOfNulls<FragmentContainerView>(3)
+    private val lastGaugeSizes = FloatArray(3) { 0f }
 
     private var screensAnimating = false
     private var mStarted = false
@@ -306,8 +307,10 @@ open class DashboardFragment : AlbumArt() {
 
 
     fun applyGaugeSize(index: Int, size: Float) {
+        lastGaugeSizes[index] = size
         val gv = gaugeViews[index] ?: return
-        val scale = if (size == 0f) 1f else size.coerceIn(0.5f, 2.0f)
+        var scale = if (size == 0f) 1f else size.coerceIn(0.5f, 2.0f)
+        if (index == 1 && binding.largeCenter == true) scale *= 1.1f
         gv.scaleX = scale
         gv.scaleY = scale
         val inv = 1f / scale
@@ -484,6 +487,7 @@ open class DashboardFragment : AlbumArt() {
 
     private fun updateScale(largeCenter: Boolean) {
         binding.largeCenter = largeCenter
+        applyGaugeSize(1, lastGaugeSizes[1])
     }
 
     private fun setupBackground(newBackground: String?) {
