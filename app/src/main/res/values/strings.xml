@@ -55,6 +55,7 @@
     <string name="font_vw" translatable="false">Volkswagen CarUI</string>
     <string name="font_vw2" translatable="false">Volkswagen Thesis</string>
     <string name="font_vw3" translatable="false">VW Digit</string>
+    <string name="font_ethnocentric" translatable="false">Ethnocentric</string>
     <string name="pref_appearance">Appearance</string>
     <string name="pref_centerclock">Center gauges</string>
     <string name="pref_font">Font</string>
@@ -98,6 +99,7 @@
     <string name="bg_skodaone">OneApp</string>
     <string name="bg_blackboard">Blackboard</string>
     <string name="bg_test">Test</string>
+    <string name="bg_commander">Commander</string>
     <string name="bg_beetle">Herbie</string>
     <string name="pref_background">Background</string>
     <string name="font_ford" translatable="false">United Sans</string>

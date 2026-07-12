@@ -28,6 +28,7 @@
         <item>Lexus</item>
         <item>Test</item>
         <item>Custom</item>
+        <item>Commander</item>
     </string-array>
 
     <array name="ThemesThumbs">
@@ -55,6 +56,7 @@
         <item>@drawable/ic_theme_am</item>
         <item>@drawable/ic_theme_ev</item>
         <item>@drawable/ic_theme_lexus</item>
+        <item>@drawable/ic_theme_test</item>
         <item>@drawable/ic_theme_test</item>
         <item>@drawable/ic_theme_test</item>
     </array>
@@ -86,6 +88,7 @@
         <item>@style/AppTheme.Lexus</item>
         <item>@style/AppTheme.Testing</item>
         <item>@style/AppTheme.Custom</item>
+        <item>@style/AppTheme.Commander</item>
     </array>
 
     <string-array name="fontEntries">
@@ -101,6 +104,7 @@
         <item>@string/font_larabie</item>
         <item>@string/font_ford</item>
 	<item>@string/font_ev</item>
+	<item>@string/font_ethnocentric</item>
     </string-array>
 
     <string-array name="fontValues">
@@ -116,6 +120,7 @@
         <item>larabie</item>
         <item>ford</item>
         <item>ev</item>
+        <item>ethnocentric</item>
     </string-array>
 
     <string-array name="FontThumbs">
@@ -130,6 +135,7 @@
         <item>@drawable/ic_font_skoda</item>
         <item>@drawable/ic_font_larabie</item>
         <item>@drawable/ic_font_ford</item>
+        <item>@drawable/ic_font_ev</item>
         <item>@drawable/ic_font_ev</item>
     </string-array>
 
@@ -306,6 +312,7 @@
         <item>@drawable/thumb_background_incar_aa</item>
         <item>@drawable/thumb_background_incar_ev</item>
         <item>@drawable/thumb_background_incar_test</item>
+        <item>@drawable/thumb_background_incar_test</item>
     </array>
 
     <string-array name="backgroundstrings">
@@ -331,6 +338,7 @@
         <item>@string/bg_aa</item>
         <item>@string/bg_ev</item>
         <item>@string/bg_test</item>
+        <item>@string/bg_commander</item>
     </string-array>
 
     <array name="backgrounds">
@@ -356,6 +364,7 @@
         <item>background_incar_aa</item>
         <item>background_incar_ev</item>
         <item>background_incar_test</item>
+        <item>background_incar_black</item>
     </array>
     <string-array name="minmax_enum_value">
         <item>0</item>

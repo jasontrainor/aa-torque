@@ -196,7 +196,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                             i + 1
                         )
                         it.key = "dashboard_$i"
-                        it.fragment = SettingsDashboard::class.java.canonicalName
+                        it.fragment = DashboardEditorComposeFragment::class.java.canonicalName
                         it.summary = screen.title
                     })
                 }
